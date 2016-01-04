@@ -1,2 +1,16 @@
 {%extends "base.html"%}
+
 {%block title%}欢迎光临啊{%endblock%}
+
+{%block content%}
+<content1>
+{%for key, value in info_dict.items%}
+{{value}}
+{%endfor%}
+</content1>
+<content2>
+{%for item in tst_list%}
+{{item}}{%if not forloop.last%},{%endif%}
+{%endfor%}
+</content2>
+{%endblock%}
