@@ -1,2 +1,2 @@
 # origin
-study git
+study python
