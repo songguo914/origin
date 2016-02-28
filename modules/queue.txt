@@ -1,0 +1,157 @@
+
+创建一个“队列”对象
+import Queue
+myqueue = Queue.Queue(maxsize = 10)
+
+Queue.Queue类即是一个队列的同步实现。队列长度可为无限或者有限。可通过Queue的构造函数的可选参数maxsize来设定队列长度。如果maxsize小于1就表示队列长度无限。
+
+将一个值放入队列中
+myqueue.put(10)
+
+调用队列对象的put()方法在队尾插入一个项目。put()有两个参数，第一个item为必需的，为插入项目的值；第二个block为可选参数，默认为1。如果队列当前为空且block为1，put()方法就使调用线程暂停,直到空出一个数据单元。如果block为0，put方法将引发Queue.Full异常。还可以提供timeout，具体见api。
+
+将一个值从队列中取出
+myqueue.get()
+
+调用队列对象的get()方法从队头删除并返回一个项目。可选参数为block，默认为True。如果队列为空且block为True，get()就使调用线程暂停，直至有项目可用。如果队列为空且block为False，队列将引发Queue.Empty异常。还可以提供timeout，如果提供了，即使block为True，阻塞时间大于timeout后，仍将引发Queue.Empty异常，具体见api。
+
+
+python queue模块有三种队列:
+1、python queue模块的FIFO队列先进先出。
+2、LIFO类似于堆。即先进后出。
+3、还有一种是优先级队列级别越低越先出来。 
+
+针对这三种队列分别有三个构造函数:
+1、class Queue.Queue(maxsize) FIFO 
+2、class Queue.LifoQueue(maxsize) LIFO 
+3、class Queue.PriorityQueue(maxsize) 优先级队列 
+
+介绍一下此包中的常用方法:
+Queue.qsize() 返回队列的大小 
+Queue.empty() 如果队列为空，返回True,反之False 
+Queue.full() 如果队列满了，返回True,反之False
+Queue.full 与 maxsize 大小对应 
+Queue.get([block[, timeout]])获取队列，timeout等待时间 
+Queue.get_nowait() 相当Queue.get(False)
+非阻塞 Queue.put(item) 写入队列，timeout等待时间 
+Queue.put_nowait(item) 相当Queue.put(item, False)
+Queue.task_done() 在完成一项工作之后，Queue.task_done()函数向任务已经完成的队列发送一个信号
+Queue.join() 实际上意味着等到队列为空，再执行别的操作
+
+ 
+
+
+附上一个例子:
+# -*- coding:utf-8 -*-
+
+import Queue
+import threading
+import time
+import random
+
+q = Queue.Queue(0) #当有多个线程共享一个东西的时候就可以用它了
+NUM_WORKERS = 3
+
+class MyThread(threading.Thread):
+
+    def __init__(self,input,worktype):
+       self._jobq = input
+       self._work_type = worktype
+       threading.Thread.__init__(self)
+
+    def run(self):
+       while True:
+           if self._jobq.qsize() > 0:
+               self._process_job(self._jobq.get(),self._work_type)
+           else:break
+
+    def _process_job(self, job, worktype):
+       doJob(job,worktype)
+
+def doJob(job, worktype):
+   time.sleep(random.random() * 3)
+    print"doing",job," worktype ",worktype
+
+if __name__ == '__main__':
+    print "begin...."
+    for i in range(NUM_WORKERS * 2):
+       q.put(i) #放入到任务队列中去
+    print "job qsize:",q.qsize()
+
+    for x inrange(NUM_WORKERS):
+       MyThread(q,x).start()
+
+       
+
+范例：
+实现一个线程不断生成一个随机数到一个队列中(考虑使用Queue这个模块)
+实现一个线程从上面的队列里面不断的取出奇数
+实现另外一个线程从上面的队列里面不断取出偶数
+#!/usr/bin/env python
+#coding:utf8
+import random,threading,time
+from Queue import Queue
+#Producer thread
+class Producer(threading.Thread):
+  def __init__(self, t_name, queue):
+    threading.Thread.__init__(self,name=t_name)
+    self.data=queue
+  def run(self):
+    for i in range(10):  #随机产生10个数字 ，可以修改为任意大小
+      randomnum=random.randint(1,99)
+      print "%s: %s is producing %d to the queue!" % (time.ctime(), self.getName(), randomnum)
+      self.data.put(randomnum) #将数据依次存入队列
+      time.sleep(1)
+    print "%s: %s finished!" %(time.ctime(), self.getName())
+  
+#Consumer thread
+class Consumer_even(threading.Thread):
+  def __init__(self,t_name,queue):
+    threading.Thread.__init__(self,name=t_name)
+    self.data=queue
+  def run(self):
+    while 1:
+      try:
+        val_even = self.data.get(1,5) #get(self, block=True, timeout=None) ,1就是阻塞等待,5是超时5秒
+        if val_even%2==0:
+          print "%s: %s is consuming. %d in the queue is consumed!" % (time.ctime(),self.getName(),val_even)
+          time.sleep(2)
+        else:
+          self.data.put(val_even)
+          time.sleep(2)
+      except:   #等待输入，超过5秒 就报异常
+        print "%s: %s finished!" %(time.ctime(),self.getName())
+        break
+class Consumer_odd(threading.Thread):
+  def __init__(self,t_name,queue):
+    threading.Thread.__init__(self, name=t_name)
+    self.data=queue
+  def run(self):
+    while 1:
+      try:
+        val_odd = self.data.get(1,5)
+        if val_odd%2!=0:
+          print "%s: %s is consuming. %d in the queue is consumed!" % (time.ctime(), self.getName(), val_odd)
+          time.sleep(2)
+        else:
+          self.data.put(val_odd)
+          time.sleep(2)
+      except:
+        print "%s: %s finished!" % (time.ctime(), self.getName())
+        break
+#Main thread
+def main():
+  queue = Queue()
+  producer = Producer('Pro.', queue)
+  consumer_even = Consumer_even('Con_even.', queue)
+  consumer_odd = Consumer_odd('Con_odd.',queue)
+  producer.start()
+  consumer_even.start()
+  consumer_odd.start()
+  producer.join()
+  consumer_even.join()
+  consumer_odd.join()
+  print 'All threads terminate!'
+  
+if __name__ == '__main__':
+  main()
