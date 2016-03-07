@@ -1,0 +1,275 @@
+ Python模块学习之bs4
+
+1、安装bs4
+
+我用的ubuntu14.4，直接用apt-get命令就行
+sudo apt-get install Python-bs4
+
+2、安装解析器
+
+Beautiful Soup支持Python标准库中的HTML解析器，还支持一些第三方的解析器，其中一个是lxml。
+sudo apt-get install Python-lxml
+
+3、如何使用
+
+将一段文档传入BeautifulSoup的构造方法，就能得到一个文档的对象，可以传入一段字符串或一个文件句柄。
+from bs4 import BeautifulSoup
+soup = BeautifulSoup(open("index.html"))
+soup = BeautifulSoup("<html>data</html>")
+
+4、对象的种类
+
+Beautfiful Soup将复杂HTML文档转换成一个复杂的树形结构，每个节点都是Python对象，所有对象可以归纳为4种：tag，NavigableString，BeautifulSoup，Comment。
+
+tag
+
+Tag对象与XML或HMTL原生文档中的tag相同：
+
+soup = BeautifulSoup('<b class="boldest">Extremely bold</b>')
+tag = soup.b
+type(tag)
+# <class 'bs4.element.Tag'>
+
+每个tag都有自己的名字，通过.name来获取：
+
+tag.name
+# u'b'
+
+一个tag可能有很多属性。
+
+tag['class']
+# u'boldest'
+
+tag.attrs
+# {u'class': u'boldest'}
+
+NavigableString
+
+字符串常被包含在tag内。
+
+tag.string
+# u'Extremely bold'
+type(tag.string)
+# <class 'bs4.element.NavigableString'>
+
+ 
+
+BeautifulSoup
+
+BeautifulSoup对象表示的是一个文档的全部内容。
+
+soup
+<html><body><b class="boldest">Extremely bold</b></body></html>
+type(soup)
+<class 'bs4.BeautifulSoup'>
+
+Comment
+
+一般表示的是文档的注释部分。
+
+ 
+
+5、遍历文档树
+
+tag的名字
+
+可以通过点取属性的方式获取tag，并且可以多次调用。
+
+soup.head
+# <head><title>The Dormouse's story</title></head>
+
+soup.title
+# <title>The Dormouse's story</title>
+
+通过点取属性的方式只能获取当前名字的第一个tag：
+
+soup.a
+# <a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>
+
+如果想获取所有的a标签
+
+soup.find_all('a')
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>,
+#  <a class="sister" href="http://example.com/lacie" id="link2">Lacie</a>,
+#  <a class="sister" href="http://example.com/tillie" id="link3">Tillie</a>]
+
+6、搜索文档树
+
+Beautiful Soup最重要的搜索方法有两个：find（）,find_all()。
+
+过滤器
+
+最简单的过滤器是字符串
+
+soup.find_all('b')
+# [<b>The Dormouse's story</b>]
+
+通过传入正则表达式来作为参数
+
+import re
+for tag in soup.find_all(re.compile("^b")):
+    print(tag.name)
+# body
+# b
+
+传入列表参数
+
+soup.find_all(["a", "b"])
+# [<b>The Dormouse's story</b>,
+#  <a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>,
+#  <a class="sister" href="http://example.com/lacie" id="link2">Lacie</a>,
+#  <a class="sister" href="http://example.com/tillie" id="link3">Tillie</a>]
+
+
+如果没有合适的过滤器，还可以自定义方法
+
+find_all()
+
+find_all( name , attrs , recursive , text , **kwargs )
+
+name参数
+
+name参数可以查找所有名字为name的tag，比如title\head\body\p等等
+
+keyword参数
+
+如果一个指定名字的参数不是搜索内置的参数名,搜索时会把该参数当作指定名字tag的属性来搜索,如果包含一个名字为 id 的参数,Beautiful Soup会搜索每个tag的”id”属性.
+
+soup.find_all(id='link2')
+# [<a class="sister" href="http://example.com/lacie" id="link2">Lacie</a>]
+
+如果传入 href 参数,Beautiful Soup会搜索每个tag的”href”属性:
+
+soup.find_all(href=re.compile("elsie"))
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>]
+
+搜索指定名字的属性时可以使用的参数值包括 字符串 , 正则表达式 , 列表, True .
+
+下面的例子在文档树中查找所有包含 id 属性的tag,无论 id 的值是什么:
+
+soup.find_all(id=True)
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>,
+#  <a class="sister" href="http://example.com/lacie" id="link2">Lacie</a>,
+#  <a class="sister" href="http://example.com/tillie" id="link3">Tillie</a>]
+
+使用多个指定名字的参数可以同时过滤tag的多个属性:
+
+soup.find_all(href=re.compile("elsie"), id='link1')
+# [<a class="sister" href="http://example.com/elsie" id="link1">three</a>]
+
+按css搜索
+
+class由于与Python关键字冲突，因此在beatifulsoup中为class_
+
+class_ 参数同样接受不同类型的 过滤器 ,字符串,正则表达式,方法或 True
+
+ 
+
+text参数
+
+text参数可以搜索文档中的字符串内容。与 name 参数的可选值一样, text 参数接受 字符串 , 正则表达式 , 列表, True。
+像调用 find_all() 一样调用tag
+
+find_all() 几乎是Beautiful Soup中最常用的搜索方法,所以我们定义了它的简写方法. BeautifulSoup 对象和 tag 对象可以被当作一个方法来使用,这个方法的执行结果与调用这个对象的 find_all() 方法相同,下面两行代码是等价的:
+
+soup.find_all("a")
+soup("a")
+
+这两行代码也是等价的:
+
+soup.title.find_all(text=True)
+soup.title(text=True)
+
+ 
+
+CSS选择器
+
+Beautiful Soup支持大部分的CSS选择器 [6] ,在 Tag 或 BeautifulSoup 对象的 .select() 方法中传入字符串参数,即可使用CSS选择器的语法找到tag:
+
+soup.select("title")
+# [<title>The Dormouse's story</title>]
+
+soup.select("p nth-of-type(3)")
+# [<p class="story">...</p>]
+
+通过tag标签逐层查找:
+
+soup.select("body a")
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>,
+#  <a class="sister" href="http://example.com/lacie"  id="link2">Lacie</a>,
+#  <a class="sister" href="http://example.com/tillie" id="link3">Tillie</a>]
+
+soup.select("html head title")
+# [<title>The Dormouse's story</title>]
+
+找到某个tag标签下的直接子标签 [6] :
+
+soup.select("head > title")
+# [<title>The Dormouse's story</title>]
+
+soup.select("p > a")
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>,
+#  <a class="sister" href="http://example.com/lacie"  id="link2">Lacie</a>,
+#  <a class="sister" href="http://example.com/tillie" id="link3">Tillie</a>]
+
+soup.select("p > a:nth-of-type(2)")
+# [<a class="sister" href="http://example.com/lacie" id="link2">Lacie</a>]
+
+soup.select("p > #link1")
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>]
+
+soup.select("body > a")
+# []
+
+找到兄弟节点标签:
+
+soup.select("#link1 ~ .sister")
+# [<a class="sister" href="http://example.com/lacie" id="link2">Lacie</a>,
+#  <a class="sister" href="http://example.com/tillie"  id="link3">Tillie</a>]
+
+soup.select("#link1 + .sister")
+# [<a class="sister" href="http://example.com/lacie" id="link2">Lacie</a>]
+
+通过CSS的类名查找:
+
+soup.select(".sister")
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>,
+#  <a class="sister" href="http://example.com/lacie" id="link2">Lacie</a>,
+#  <a class="sister" href="http://example.com/tillie" id="link3">Tillie</a>]
+
+soup.select("[class~=sister]")
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>,
+#  <a class="sister" href="http://example.com/lacie" id="link2">Lacie</a>,
+#  <a class="sister" href="http://example.com/tillie" id="link3">Tillie</a>]
+
+通过tag的id查找:
+
+soup.select("#link1")
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>]
+
+soup.select("a#link2")
+# [<a class="sister" href="http://example.com/lacie" id="link2">Lacie</a>]
+
+通过是否存在某个属性来查找:
+
+soup.select('a[href]')
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>,
+#  <a class="sister" href="http://example.com/lacie" id="link2">Lacie</a>,
+#  <a class="sister" href="http://example.com/tillie" id="link3">Tillie</a>]
+
+通过属性的值来查找:
+
+soup.select('a[href="http://example.com/elsie"]')
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>]
+
+soup.select('a[href^="http://example.com/"]')
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>,
+#  <a class="sister" href="http://example.com/lacie" id="link2">Lacie</a>,
+#  <a class="sister" href="http://example.com/tillie" id="link3">Tillie</a>]
+
+soup.select('a[href$="tillie"]')
+# [<a class="sister" href="http://example.com/tillie" id="link3">Tillie</a>]
+
+soup.select('a[href*=".com/el"]')
+# [<a class="sister" href="http://example.com/elsie" id="link1">Elsie</a>]
+
