@@ -1,0 +1,335 @@
+ Python之lxml库学习笔记一
+
+lxml takes all the pain out of XML.
+Stephan Richter
+
+    lxml是Python语言里和XML以及HTML工作的功能最丰富和最容易使用的库。lxml是为libxml2和libxslt库的一个Python化的绑定。它与众不同的地方是它兼顾了这些库的速度和功能完整性，以及纯Python API的简洁性，大部分与熟知的ElementTree API兼容但比之更优越。
+
+安装lxml：
+
+要求：需要Python2.3或更后的版本
+
+使用easy_install工具，以超级用户或管理员的角色run下面的命令：
+
+easy_install lxml
+
+在windows下，最好指定版本号：easy_install lxml==2.2.6
+
+使用lxml进行开发
+
+lxml.etree指南
+
+通常使用lxml.etree的方式
+
+>>> from lxml import etree
+
+ 
+
+Element类，一个Element是ElementTree API的主要容器类，大部分的XML tree功能都是通过这个类来访问的。Elements可以非常容易地通过Element工厂方法来创建。
+
+>>> root = etree.Element("root")
+
+元素的XML tag名字是通过tag属性来访问的
+
+>>> print root.tag # root
+
+Elements是在XML树状结构中组织的，为创建子元素并将它们加到父元素上，可以使用append()方法。
+
+>>> root.append( etree.Element("child1") )
+
+我们还有更高效的方法：SubElement工厂方法，它使用和Element工厂方法相同的参数，不过额外需要父节点作第一个参数：
+
+>>> child2 = etree.SubElement(root, "child2")
+>>> child3 = etree.SubElement(root, "child3")
+
+可以使用tostring()方法来看得到的XML
+
+>>> print etree.tostring(root, pretty_print=True)
+<root>
+<child1/>
+<child2/>
+<child3/>
+</root>
+
+元素是列表
+
+>>> child = root[0]
+>>> print child.tag
+child1
+
+>>> print len(root)
+3
+
+>>> root.index(root[1]) # lxml.etree only!
+1
+
+打印所有子节点：
+
+>>> children = list(root)
+
+>>> for child in root:
+
+... print(child.tag)
+child1
+child2
+child3
+
+可以使用insert()方法插入新的子节点：
+
+>>> root.insert(0, etree.Element("child0"))
+删除子节点：
+
+>>> root[0] = root[-1] # this moves the element!
+>>> for child in root:
+... print(child.tag)
+child3
+child1
+child2
+
+如果想把一个元素拷贝到不同的地方，需要创建一个独立的deep copy。
+
+>>> from copy import deepcopy
+>>> element = etree.Element("neu")
+>>> element.append( deepcopy(root[1]) )
+>>> print(element[0].tag)
+child1
+>>> print([ c.tag for c in root ])
+[’child3’, ’child1’, ’child2’]
+
+getparent()返回父节点:
+>>> root is root[0].getparent() # lxml.etree only!
+True
+
+元素的兄弟或邻居节点是通过next和previous属性来访问的
+The siblings (or neighbours) of an element are accessed as next and previous elements:
+>>> root[0] is root[1].getprevious() # lxml.etree only!
+True
+>>> root[1] is root[0].getnext() # lxml.etree only!
+True
+
+带属性的元素
+
+XML元素支持属性，可以用Element工厂方法直接创建。
+
+>>> root = etree.Element("root", interesting="totally")
+>>> etree.tostring(root)
+b’<root interesting="totally"/>’
+
+可以使用set和get方法访问这些属性：
+
+>>> print root.get("interesting")
+totally
+>>> root.set("interesting", "somewhat")
+>>> print root.get("interesting")
+somewhat
+
+也可以使用attrib性质的字典接口
+
+>>> attributes = root.attrib
+>>> print(attributes["interesting"])
+somewhat
+>>> print(attributes.get("hello"))
+None
+>>> attributes["hello"] = "Guten Tag"
+>>> print(attributes.get("hello"))
+Guten Tag
+>>> print(root.get("hello"))
+Guten Tag
+
+ 
+
+元素可以包含文字：
+
+>>> root = etree.Element("root")
+>>> root.text = "TEXT"
+>>> print(root.text)
+TEXT
+>>> etree.tostring(root)
+’<root>TEXT</root>’
+
+如果XML用在(X)HTML中，文本也可以在不同的元素中显示:
+<html><body>Hello<br/>World</body></html>
+元素有tail属性，它包含XML 树中元素直接跟的，直到下个元素的文本。
+
+>>> html = etree.Element("html")
+>>> body = etree.SubElement(html, "body")
+>>> body.text = "TEXT"
+>>> etree.tostring(html)
+b’<html><body>TEXT</body></html>’
+>>> br = etree.SubElement(body, "br")
+>>> etree.tostring(html)
+b’<html><body>TEXT<br/></body></html>’
+>>> br.tail = "TAIL"
+>>> etree.tostring(html)
+b’<html><body>TEXT<br/>TAIL</body></html>’
+
+
+
+lxm是python的一个html/xml解析并建立dom的库，lxml的特点是功能强大，性能也不错，xml包含了ElementTree ，html5lib ，beautfulsoup 等库，但是lxml也有自己相对应的库，所以，导致lxml比较复杂，初次使用者很难了解其关系。
+
+ 
+
+安装lxml
+
+lxml安装依赖
+
+python-devel,libxml2-devel,libxslt-devel，
+
+装好之后，下载
+
+http://codespeak.net/lxml/lxml-2.2.8.tgz，
+
+tar zxvf lxml-2.2.8.tgz，
+
+然后python setup.py install即可
+
+ 
+
+ 
+
+1.  解析html并建立dom
+
+>>> import lxml.etree as etree
+
+>>> html = '<html><body id="1">abc<div>123</div>def<div>456</div>ghi</body></html>'
+>>> dom = etree.fromstring(html)
+>>> etree.tostring(dom)
+'<html><body id="1">abc<div>123</div>def<div>456</div>ghi</body></html>'
+
+
+如果用beautifulsoup的解析器，则
+
+>>> import lxml.html.soupparser as soupparser
+>>> dom = soupparser.fromstring(html)
+>>> etree.tostring(dom)
+'<html><body id="1">abc<div>123</div>def<div>456</div>ghi</body></html>'
+
+ 
+
+但是我强烈建议使用soupparser，因为其处理不规范的html的能力比etree强太多。
+
+ 
+
+2.  按照Dom访问Element
+
+子元素长度
+
+>>> len(dom)
+1
+
+ 
+
+访问子元素：
+
+>>> dom[0].tag
+'body'
+
+ 
+
+循环访问：
+
+>>> for child in dom:
+...     print child.tag
+...
+body
+
+ 
+
+查看节点索引
+
+>>>body = dom[0]
+
+>>> dom.index(body)
+0
+
+ 
+
+字节点获取父节点
+
+>>> body.getparent().tag
+'html'
+
+ 
+
+访问所有子节点
+
+>>> for ele in dom.iter():
+...     print ele.tag
+...
+html
+body
+div
+div
+
+ 
+
+3. 访问节点属性
+
+>>> body.get('id')
+'1'
+
+也可以这样
+
+>>> attrs = body.attrib
+>>> attrs.get('id')
+'1'
+
+ 
+
+4. 访问Element的内容
+
+>>> body.text
+'abc'
+>>> body.tail
+
+text只是从本节点开始到第一个字节点结束；tail是从最后一个字节结束到本节点未知。
+
+ 
+
+访问本节点所有文本信息
+
+>>> body.xpath('text()')
+['abc', 'def', 'ghi']
+
+ 
+
+访问本节点和子节点所有文本信息
+
+>>> body.xpath('//text()')
+['abc', '123', 'def', '456', 'ghi']
+
+貌似返回本文档中所有文字信息
+
+ 
+
+body.text_content()返回本节点所有文本信息。
+
+ 
+
+5.Xpath的支持
+
+所有的div元素
+
+>>> for ele in dom.xpath('//div'):
+...     print ele.tag
+...
+div
+div
+
+ 
+
+id=“1”的元素
+
+>>> dom.xpath('//*[@id="1"]')[0].tag
+'body'
+
+ 
+
+body下的第1个div
+
+>>> dom.xpath('body/div[1]')[0].tag
+'div'
+
+ 
+
+ 
