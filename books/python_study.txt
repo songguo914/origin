@@ -1,0 +1,264 @@
+1	以下python用于从文件instance.txt中截取字段：文件instance.txt内容如下：
+!aa
+a1
+a2
+a3
+!bb
+b1
+b2
+b3
+!cc
+b1
+b2
+运行结果为result.txt:
+!bb
+b1
+b2
+b3
+python内容为：
+f=open('instance.txt','r')
+res=open('result.txt','w')
+
+flag=0
+
+for line in f.readlines():
+	if flag==1 and line.find('!')!=-1:
+		flag=0
+	if line.find('!bb')!=-1:
+		flag=1
+		continue
+	if flag==1:
+		res.write(line)
+
+f.close()
+res.close()
+
+raw_input("success,please enter...")
+
+2	type的用法
+用法1，查看一个对象的类型
+>>> a  = 1
+>>> type(a)
+<type 'int'>
+>>> import time
+>>> type(time)
+<type 'module'>
+>>> type(float)  
+<class 'type'> 
+>>> type(type)  
+<class 'type'>  
+好吧，测试到此为止。`type`是所有类型的类型，包括它自身。
+用法2
+与常规类类似，元类也可以由用户自定义。具体用法是将目标类的`__metaclass__`属性设置为自定义的`metaclass`。`metaclass`必须是可调用(callable)的，并且返回一个`type`。通常，用户可以使用一个函数来设置`__metaclass__`属性，这个函数是`type`的另一种用法：利用三个参数创建一个新类。
+如上文所述，`type`有着另一种完全不同的用法。这种用法由传入三个参数：type(name, bases, dict)能够创建一个新的类型。以下是创建一个新类的通常做法：
+class Foo(object):  
+    pass 
+而我们能够通过以下的代码达到同样的效果：
+Foo = type('Foo', (), {}) 
+目前Foo是一个名为“Foo”的类的引用，这个名为“Foo”的类以object为基类（通过type创建的类，如果没有特别指定其基类，将会默认创建新类型的类）。
+这么做看起来非常棒，但如果我们需要向Foo中添加成员函数该怎么办呢？这很容易通过设置Foo的类属性办到：
+    def always_false(self):  
+        return False  
+      
+    Foo.always_false = always_false  
+上面的代码也能够写成如下形式：
+    Foo = type('Foo', (), {'always_false': always_false})
+bases参数是Foo的基类列表，在上例中我们留空了，同时可以用type从Foo类创建一个新类：
+FooBar = type('FooBar', (Foo), {})
+介绍完`type`和`metaclasses`之后问题随之而来：“我该什么时候使用它们呢？”答案是显然的，在日常的工作中我们并不一定会经常使用到它们。但当我们想要动态地创建类时，利用type是一个很合适的解决方案。
+
+3	translate() 方法根据参数table给出的表(包含 256 个字符)转换字符串的字符, 要过滤掉的字符放到 del 参数中。
+translate()方法语法：
+str.translate(table[, deletechars]);
+参数
+table -- 翻译表，翻译表是通过maketrans方法转换而来。
+deletechars -- 字符串中要过滤的字符列表。
+返回值
+返回翻译后的字符串。
+以下实例展示了 translate()函数的使用方法：
+#!/usr/bin/python
+from string import maketrans   # 引用 maketrans 函数。
+intab = "abc"
+outtab = "123"
+trantab = maketrans(intab, outtab)
+str = "ababccddd!!!";
+print str.translate(trantab);
+以上实例输出结果如下：
+121233ddd!!!
+
+下面实例去除字符串中的 '(' 和 ')' 字符：
+#!/usr/bin/python
+a = (1,2,3)	#此时a为(1, 2, 3)
+b = str(a)	#此时b为'(1, 2, 3)'
+b = b.translate(None, '()')	#此时b为'1, 2, 3'
+b = b.replace(", ", "")	#此时b为'123'
+
+4	python中xrange和range的异同
+range
+    函数说明：range([start,] stop[, step])，根据start与stop指定的范围以及step设定的步长，生成一个序列。
+xrange
+    函数说明：用法与range完全相同，所不同的是生成的不是一个数组，而是一个生成器。
+
+5	根据本人的学习经验，我总结了以下十点和大家分享：
+
+1）学好python的第一步，就是马上到www.python.org网站上下载一个python版本。我建议初学者，不要下载具有IDE功能的集成开发环境，比如Eclipse插件等。
+2）下载完毕后，就可以开始学习了。学习过程中，我建议可以下载一些python的学习文档，比如《dive into python》，《OReilly - Learning Python》等等。通过学习语法，掌握python中的关键字语法，函数语法，数学表达式等等
+3）学完了基本语法后，就可以进行互动式学习了。python具备很好的交互学习模式，对于书本上的例子我们可以通过交互平台进行操练，通过练习加深印象，达到学习掌握的目的。
+4）通过以上三个步骤的学习后，我们大致掌握了python的常用方法、关键字用法以及函数语法等。接下去的学习上，我们就可以着手学习常用模块的使用， 比如os,os.path,sys,string模块等。我们可以在交互环境中先熟悉使用其中的函数，如果遇到函数的使用上的问题，可以参考python 安装后的自带chm帮助文件。
+5）为了更好得掌握python，我们的学习不能只是停留在学习一些语法或者api阶段。在此阶段中，我们可以尝试用python解决我们项目中遇到的一 些问题，如果项目不是用python开发的，那我们可以想想能不能用python制作一些项目组可以使用的一些工具（utility），通过这些工具简化 项目组成员的任务，提高我们的工作效率。如果没有项目，我们也可以自己找些题目来自己练习练习。
+6）经过以上锻炼后，我们的python知识水平肯定是越来越高。接下去的学习，我们就要更上一层楼。为了学以致用，真正能应用于项目开发或产品开发，我 们还必须学习企业应用开发中必须要掌握的网络和数据库知识。在此的学习就不光是python语言本身的学习了，如果之前没有学习和掌握很网络和数据库知 识，在此阶段我们可以借此机会补习一把。
+7）在此，我想我们对python的使用以及信手拈来了，即使忘了api的用法，我们也可以在短时间内通过查看文档来使用api。那么接下去，我们要学习 什么呢?那就是设计能力，在学习设计能力的过程中，如果对类等面向对象的概念不清楚的，在此阶段也可以学习或加以巩固。就像飞机设计师设计飞机通过学习模 型来设计一样，我们也可以通过学习书上的经典例子来学习设计。等有了设计的基本概念后，我们就可以着手设计我们的程序了。在此阶段中，我们重要的是学习抽 象的思想，通过隔离变化点来设计我们的模块。
+8）到此阶段，我们已经是真正入门了。在接下去的工作中，就是要快速地通过我们的所学来服务项目了。在此阶段，我们除了掌握python自带的模块外，我 们最好在掌握一些业界广泛使用的开源框架，比如twisted、peak、django、xml等。通过熟练使用它们，达到闪电开发，大大节省项目宝贵时 间。
+9）你已经是个python行家了，在此阶段，我们在工作中会遇到一些深层次的、具体的困难问题。面对这些问题，我们已经有自己的思考方向和思路了。我们 时常会上网观看python的最新发展动态，最新python技术和开源项目，我们可以参与python论坛并结交社区中一些python道友。
+10）你已经是个python专家，在此阶段你应该是个python技术传播者。时不时在组织中开坛讲座，并在博客上传播你的python见解。你会上论 坛帮助同行们解决他们提出的问题，你会给www.python.org网站提出你的宝贵建议，并为python语言发展献计献策。
+任何知识的学习无止境，python的学习也不另外。在掌握python的用法、api和框架后，我们更要学习设计模式、开发方法论等
+
+6	使用.pyw作为文件后缀，可以防止弹出dos命令窗口或终端窗口。可以这么理解，以.pyw结尾的是用来用windows打开的，以.py结尾的是用来用shell或dos打开的。
+
+7
+fobj = open(filename, 'r')
+for eachline in fobj:
+	print eachline,
+fobj.close()
+这里，在print语句中使用逗号来抑制自动生成的换行符号。因为文件中的每行文本已经自带了换行符。如果不抑制就会有额外的空行。
+
+8  wx.Button(self, wx.ID_OK, size=(80, 35))创建OK按钮
+wx.Button(self, wx.ID_CANCEL, size=(80, 35))创建CANCEL按钮
+def __on_ok(self, event):
+	self.EndModal(0)
+def __on_cancel(self, event):
+	self.EndModal(-1)
+
+9  当导入python模块后，就会执行所有的模块。当你导入foo模块的时候，它运行所有最高级别的（即没有缩进的）python代码，如何处理那些不想每次导入都执行的代码呢？缩进它，并放入if __name__ == "main"的内部。
+
+
+10  dlg.CenterOnParent(wx.BOTH)
+dlg.CenterOnScreen()
+
+11  创建置顶窗口：设置窗口的style为wx.STAY_ON_TOP
+
+12  save_btn.SetToolTipString("save the data")
+wx.DisplaySize()用于获得宽、高
+self.SetIcon(image)用于设置Frame左上角的图标
+self.CreateStatusBar(n)用于给Frame增加状态栏，n表示个数。
+
+13  父窗口为None时有可能（也不一定）会造成退出exe时，进程不完全退出。
+
+14  定制消息：
+EVT_ID = wx.NewId()
+
+def Post(evt_handler, evt_id, data):
+    if EVT_ID == evt_id:
+        wx.PostEvent(evt_handler, EditRectEvent(data))
+
+def EVT_EDIT_RECT(win, func):
+    win.Connect(-1, -1, EVT_ID, func)
+
+class EditRectEvent(wx.PyEvent):
+    def __init__(self, data):
+        wx.PyEvent.__init(self)
+        self.SetEventType(EVT_ID)
+        self.data = data
+
+15  全局变量学习
+test1.py
+def fun():
+    x = 2
+    print "x in", x
+
+x = 50
+fun()
+print "x out", x
+输出：
+x in 2
+x out 50
+此时全局变量x和局部变量x共存
+
+test2.py
+def fun():
+    print "x in", x
+
+x = 50
+fun()
+print "x out", x
+输出：
+x in 50
+x out 50
+结合test1和test2说明局部变量会覆盖全局变量。不想覆盖时，可以像下面：
+
+test3.py
+def fun():
+    global x
+    x = 2
+    print "x in", x
+
+x = 50
+fun()
+print "x out", x
+输出：
+x in 2
+x out 2
+同一个global语句可以指定多个全局变量，比如：
+global x, y, z
+
+16  exec、eval和repr:
+exec语句用来执行储存在字符串或文件中的Python语句。例如，我们可以在运行时生成一个包含Python代码的字符串，然后使用exec语句执行这些语句。下面是一个简单的例子。
+>>> exec 'print "Hello World"'
+Hello World 
+
+eval语句用来计算存储在字符串中的有效Python表达式。下面是一个简单的例子。
+>>> eval('2*3')
+6 
+
+repr函数用来取得对象的规范字符串表示。反引号（也称转换符）可以完成相同的功能。注意，在大多数时候有eval(repr(object)) == object
+>>> i = []
+>>> i.append('item')
+>>> `i`
+"['item']"
+>>> repr(i)
+"['item']" 
+
+基本上，repr函数和反引号用来获取对象的可打印的表示形式。你可以通过定义类的__repr__方法来控制你的对象在被repr函数调用的时候返回的内容。
+
+17  类的成员变量，在函数内要有self，在函数外无
+class Test():
+    def __init__(self):
+        self.vb = 3
+    va = 2
+    def test_fun(self):
+        print "va", self.va
+        print "vb", self.vb
+test = Test()
+test.test_fun()
+
+18
+图片的存储格式之一是PNM，实际上是PBM、PGM、PPM三种格式的统称。这三种语法很接近，分别对就黑白图片、灰度图片和彩色图片。
+PPM格式可以是二进制的，也可以是纯文本。两者的区别主要是像素数据用二进制表示还是用纯文本表示。
+纯文本格式的PPM非常适合于简单的图片输出，因为不需要复杂的图片处理library。
+
+下面是一个纯文本PPM格式的图片：
+文件的开头是magic number "P3"
+接下来是图片的尺寸
+然后是每个像素中颜色值的最大值，4bit=15，8bit=255，16bit=65535
+"#"开头的行是注释
+P3 4 4 15
+#feep.ppm
+0  0  0    0  0  0    0  0  0    15 0  15
+0  0  0    0  15 7    0  0  0    0  0  0
+0  0  0    0  0  0    0  15 7    0  0  0
+15 0  15   0  0  0    0  0  0    0  0  0
+PNM文件不同的Magic Number
+PNM文件的几种不同格式其实都差不多，区别主要是Magic
+Number的不同和像素值的含义的不同。
+PNM格式  纯文本格式  二进制格式  备注
+PBM      P1          P4          黑白格式：1或0
+PGM      P2          P5          灰度图片
+PPM      P3          P6          彩色图片
+wxpython存储PNM格式为P6，PIL存储格式为PPM中的P3格式。
+用wxpython做pnm转bmp格式用IDLE运行会有问题，这是因为wxpython和tkinter的宏定义不一致造成的。
+
+19  c=1 if True else 2合法
+c=1 if True else c=2不合法
+
+20
+python调用c的dll应注意保证python写的结构体，包括数据类型，应和c/c++的完全一致。ctypes内部实现应该是memcpy，而不是赋值。

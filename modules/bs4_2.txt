@@ -22,49 +22,38 @@ soup = BeautifulSoup("<html>data</html>")
 Beautfiful Soup将复杂HTML文档转换成一个复杂的树形结构，每个节点都是Python对象，所有对象可以归纳为4种：tag，NavigableString，BeautifulSoup，Comment。
 
 tag
-
 Tag对象与XML或HMTL原生文档中的tag相同：
-
 soup = BeautifulSoup('<b class="boldest">Extremely bold</b>')
 tag = soup.b
 type(tag)
 # <class 'bs4.element.Tag'>
-
 每个tag都有自己的名字，通过.name来获取：
-
 tag.name
 # u'b'
-
 一个tag可能有很多属性。
-
 tag['class']
 # u'boldest'
-
 tag.attrs
 # {u'class': u'boldest'}
 
+
 NavigableString
-
 字符串常被包含在tag内。
-
 tag.string
 # u'Extremely bold'
 type(tag.string)
 # <class 'bs4.element.NavigableString'>
 
- 
 
 BeautifulSoup
-
 BeautifulSoup对象表示的是一个文档的全部内容。
-
 soup
 <html><body><b class="boldest">Extremely bold</b></body></html>
 type(soup)
 <class 'bs4.BeautifulSoup'>
 
-Comment
 
+Comment
 一般表示的是文档的注释部分。
 
  

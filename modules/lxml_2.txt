@@ -23,8 +23,6 @@ lxml.etree指南
 
 >>> from lxml import etree
 
- 
-
 Element类，一个Element是ElementTree API的主要容器类，大部分的XML tree功能都是通过这个类来访问的。Elements可以非常容易地通过Element工厂方法来创建。
 
 >>> root = etree.Element("root")
