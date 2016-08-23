@@ -1,0 +1,1023 @@
+/**************************************************************************************
+*          我的脚本之路                                                               *
+*              写自己的脚本                                                           *
+*                                                                       ——刘敬民      *
+**************************************************************************************/
+
+1)<<命令的一般形式为:
+command <<!
+text
+!
+当shell看到<<的时候,它就会知道下一个词是一个分界符。在该分界符以后的内容都被当作输入，直到shell又看到该分界符(位于单独的一行，而且必须位于行首，前面不能有tab及空格)。这个分界符可以是你所定义的任何字符串。
+可以使用下述方法快速创建一个文件,并存入一些内容:
+cat >>test.txt <<!
+...
+!
+这在终端中会自动换行,直到遇见!才认为输入完毕,十分方便.
+可以使用<<来自动选择菜单。见下面的两个脚本：
+test1.sh
+read va
+if [ "$va" = "y" ];then #中括号中有的支持双等号，但有的只支持单等号
+echo "yes"
+else
+echo "no"
+fi
+test2.sh
+sh test1.sh <<!
+y
+!
+你可以灵活地使用<<来自动运行以前编写的脚本,从而完成各种不同的任务。
+<<的广泛应用是ftp和数据库。
+
+2)exec >outfile 2>&1 #shell命令行是从左到右解释，先将标准输出重定向到文件，然后将1拷贝一个副本
+给2，结果是将标准输出和错误输出定向到同一个文件。这是因为1在开始被重定向到了outfile中，拷贝的
+副本自然也和outfile相连。注意&表示拷贝副本的意思。注意必须有&，否则只有正确作息被输出到outfile，
+错误信息不见。这是不对的，丢弃应该用/dev/null。造成这种错误的原因可能是由于1，2是双端的，不能
+相互重定向，只能说是拷贝副本，而outfile是单端的，可以把1，2重定向过去
+
+exec 2>&1 >outfile #先将1拷贝一个副本给2，然后将1重定向到文件，结果是错误信息输出到标准输出，
+标准输出的信息输出到文件。必须有&，否则，只有正确信息被输出到outfile，错误信息不见了。这是
+不对的，丢弃应该用/dev/null。造成这种错误的原因可能是由于1，2是双端的，不能相互重定向，只能说
+是拷贝副本，而outfile是单端的，可以把1，2重定向过去
+
+exec 2>&1 >/dev/null 错误的信息被输出到标准输出，正确的信息被丢弃
+
+exec 6>&2 2>ver
+command >>dev/null &
+exec 2>&6
+exec 6>&-
+解释：exec 6>&2 2>ver就是说，打开一个文件描述符6，保存文件描述2的属性，然后把文件描述符2，
+也就是标准出错定向到文件ver。接着运行command，command会在当前shell或者子shell里面运行。
+视command的具体情况而定。但是不管怎么样，即便是子进程中运行，也会继承父shell打开的文件描述符。
+所以command >>/dev/null &就会把command的标准输出丢弃，而把标准出错保存到ver文件。exec 2>&6把
+已经定向到ver文件的标准出错恢复，这里的6可以随便写一个数字，因为它的作用就是保存一个属性，
+然后恢复。起了临时的作用。不过需要注意，查询一下您的shell手册页。因为shell本身会有保留的文件
+描述符。最好避免使用这些数字。最后一句把6关闭
+
+3)在脚本执行变量替换时最容易犯的一个错误就是引用错误。下面介绍单引、双引、反引号及使用反斜线实现屏蔽。
+使用双引号可引用除字符 $、`、\外的任意字符或字符串。这些特殊字符分别为美元符号,反引号和反斜线。
+单引号与双引号类似,不同的是 shell会忽略任何引用值。换句话说,如果屏蔽了其特殊含义,会将引号里的所有字符,包括引号都作为一个字符串。
+反引号用于设置系统命令的输出到变量。 shell将反引号中的内容作为一个系统命令,并执行其内容。使用这种方法可以替换输出为一个变量。反引号可以与引号结合使用。
+如果下一个字符有特殊含义,反斜线防止 shell误解其含义,即屏蔽其特殊含义。下述字符包含有特殊意义: & * + ^ $ ` " | ?。假定echo命令加*,意即以串行顺序（ls *是并行）打印当前整个目录列表,而不是一个星号 *。为屏蔽*号特定含义，可使用反斜线，echo \*。或者使用引号echo "*"。在打印字符串时要加入八进制字符( ASCII相应字符),必须在前面加反斜线,否则 shell将其当作普通数字处理。如果是linux，则可以使用-e选项来显示控制字符。使用命令e x p r时,用*表示乘法会出现错误,在 *前加上反斜线才会正确。在echo命令中加入元字符,必须用反斜线起屏蔽作用。
+
+4)一个应用awk的脚本例子：
+awk '{if($1~/EXEC/ && $2~/SQL/ && $3~/include/) {gsub(/fdb/,"",$4);
+gsub(/;/,"",$4);print "#" $3 " " $4} else print}' test.txt >test1.txt
+它能把test.txt中的内容：
+EXEC SQL include "fdbfbbka.h";
+aaaa
+变成：
+#include fbbka.h
+aaaa
+
+5)sed学习：
+cat test.txt|sed '2,5d'删除2~5行
+cat test.txt|sed '2d'删除第2行
+cat test.txt|sed '2,$d'删除2到最后一行
+cat test.txt|sed '2a drink tea'在第二行后加上drink tea(即第三行)
+cat test.txt|sed '2i drink tea'在第二行前加上drink tea
+一次性增加多行可以这样：
+cat test.txt|sed '2a drink tea\
+drink beer'
+注意上面的反斜杠。
+cat test.txt|sed '2,5c No 2-5 number'将2到5行的内容取代成为No 2-5 number
+
+cat /etc/passwd.old|sed –e ‘4d’ –e ‘6c no six line’>passwd.new
+这里sed是将第四行删除，第六行取代成为no six line
+sed的-e表示直接在指令列模式上进行sed的动作编辑（-e可以省略）
+
+我们要显示一个文件的第11~20行，可以：
+head -n 20 test.txt|tail -n 10
+nl test.txt|sed -n '5,7p'
+sed 's/要被取代的字符串/新的字符串/g'
+sed 's/^.*a://g'本句把a:之前的内容全部替换为空，也即是删除。
+sed 's/a:.*$//g'本句把a:之后的内容全部替换为空，也即是删除。
+sed '/^$/d'本句用于删除空白行。
+sed -i ……可以直接对原文档进行修改，本选项慎用。
+延伸正规表示法举例：
+egrep -v '^$|^#' test.txt本句去掉了空白行和以#开头的行。
+
+5.1)sed使用
+我有个1.sh文件内容如下 sed -i 's/$1/$2/g' 1.txt
+其中$1 $2 就是 ./1.txt one first  后面的参数 one 和first
+就是将1.txt中 的one 替换为first
+但是我的写法肯定替换不了，请问sed 如何替换传递的参数值
+sed -i 's/'$1'/'$2'/g' 1.txt  
+用单引号把shell变量扩起来
+把shell变量$1和$2拿到单引号外面来
+原因其实就是单引号会消除$取值符号的特殊含义，$只会被解析为字符本身。
+
+6)awk也是一个非常棒的数据处理工具！相较于sed常常作用于一整个行的处理，
+awk则比较倾向于一行当中分成数个字段来处理。
+awk通常动作的模式是这样的：
+awk '条件类型1{动作1}条件类型2{动作2}……' filename
+last -n 5|awk '{print $1 "\t" NF $3}'
+$0代表当前整行
+NF表示当前行拥有的字段总数
+NR表示目前awk所处理的是第几行数据
+FS表示目前的分隔字符，默认是空格键。可以对他赋值来改变分隔字符。
+cat /etc/passwd|awk '{FS=":"}$3<10{print $1 "\t" $3}'该名会出现一个问题：
+那就是我们虽然定义了FS=":"，但是却仅能在第二行后才开始生效。这是因为我们
+在读入第一行的时候，那些变数$1,$2……默认还是以空格键作为分隔。那我们怎么办？
+解决办法是预先设定awk的变量，也就是利用BEGIN这个关键词！
+cat /etc/passwd|awk 'BEGIN{FS=":"}$3<10{print $1 "\t" $3}'
+一个小例子：
+cat pay.txt|awk 'NR==1{printf"%10s%10s%10s\n",$1,$2,"Total"}NR>=2{total=
+$1+$2
+printf"%10d%10d%10d\n",$1,$2,total}'
+有两点需要特别说明的是：1、所有awk的动作，亦即在{}内的动作，如果需要多个指令辅助时，
+可利用分号【;】间隔，或者直接以Enter按键来隔开每个指令。2、逻辑去处当中，如果是等于
+的情况，则务必使用两个等号【==】。
+上面的句子也可以改成：cat pay.txt|awk '{if(NR==1)printf……}NR>=2{total=$1+$2;prinft……}'
+另外awk工具有很多非常给力的函数，比如：
+tolower()	toupper()	gsub(r,s)	gsub(r,s,t)等等。
+
+6.1)在碰到awk错误时，可相应查找：
+	确保整个awk命令用单引号括起来；
+	确保用花括号括起动作语句，用圆括号括起条件语句；
+	\t类需要双引号括起来；
+一个小例子：
+awk '{print $1 "\t" $2 "\t" $3}' test.txt
+再举一个例子：
+awk '$1~/#/{printf "good %s\n",$1}' test.txt这里的匹配只要在$1中
+任意位置有#号即可。要想在字符串首匹配应该这样：$1~/^#/{}
+
+6.2)解释下awk '!a[$0]++' file（行去重）
+一看之下，首先想到的是即用到了awk的hash，又是缺省的pattern。
+这个要从awk的执行模式说起，最后结合++运算符和hash特色。
+有三个基本知识点是要了解的
+1：a++的作用是先附值，再累加a，与++a正好相反
+2：hash的初始是undef,通过直接附值或声明进行定义，如a[1]=1，或直接声明a[1]
+3：awk的基本模式是pattern{action statements},action部分是可以省略的，
+缺省情况下是输出，即{print $0},至于pattern可以理解成是表达式，通过pattern表达式的值的
+真假，来确定是否要进行action。比如最简单的awk用来实现cat的功能就是awk '1'，
+这边1就是pattern，当然1也可以是2，3，4，5等其他数字，但如果用字母的话就不行，
+因为字母会被解释成变量，变量初始值末定义，初始值为假，或者可以加个！反义。
+结合上边三点来分析awk '!a[$0]++' file
+'!a[$0]++'
+整个模式没有用到action，所以采用的是默认的{print $0},即在pattern为真条件时，输出行。
+pattern分析：
+1：使用了一个hash数组a，数组的键值采用$0，即每行值
+2：当a[$0]未声明时，a[$0]为假，在未声明的情况下，进行一次a[$0]++后，a[$0]即为真。
+3：！取反
+结论：当相同的行第一次读入时，pattern为真，行输出，再次读入后，pattern为假，略过不输出。
+类似的，awk '!a[$3]++' file实现的效果就是对于$3是第一次出现的行进行打印，也就是去除$3重复的行。
+和awk '!a[$3]++' file效果相同的是：awk '!($3 in a){a[$3];print}' file
+
+6.3)awk '!($3 in a){a[$3];print}' file的解释：
+如果$3的值不在a数组的下标中，那么把$3存入数组下标中，并打印。执行到第二行时，
+$3的值是3，已经存在于数组a的下标中，则不会执行后面的{action}。同样达到去重目的。
+
+6.4)
+b|3
+a|2
+a|3
+a|2
+b|1
+b|2
+文本去重后统计a和b出现的次数，最后输出：
+a|2
+b|3
+awk -F'|' '!a[$0]++{b[$1]++}END{for(i in b)print i FS b[i]}' file
+
+6.5)awk作为一门脚本语言，支持的数据类型主要是简单变量和数组变量。awk中的数组与传统的C和java中的
+数组不同，更类似于C++ STL中的map或python中的dict，是关联式数组，通过关联关系将key和value结合起来。
+并且它并不限制key和value的类型，可以 在一个数组中混合使用多种类型的key和value（尽管可能不常这么用）。
+awk中的变量在使用之前是不需要声明的，在第一次使用时确定它的类型，并且以后不再改变。
+所以如果一个变量arr第一次被当做数组来使用，那么以后就不能在用作简单变量。假定arrary是一个数组变量，
+如果key不在 array中，那么arrary[key]将返回一个空串；如果key在array中，则返回对应的变量arrary[key]。
+awk可以通过关键字 in来判断key是否在数组中出现。并且可以通过for(key in array)的形式来遍历数组中的元素。
+下面给出一个简单的例子来介绍数组的使用，假定有一个文件，各行都是类似：
+uid: 1234 song: YestodayOnceMore spack: 123 ppack: 345 time: 234
+现在我们需要统计歌曲为YestodayOnceMore各行中出现的spack和ppack，平均时间time，可以使用以下的脚本：
+    BEGIN{  
+        arr["spack" ] = 0;  
+        arr["ppack" ] = 0;  
+        arr["time" ]    = 0;  
+        count = 0;  
+    }  
+    /$4 == "YestodayOnceMore" /{  	这里的两个/建议去掉
+        arr["spack" ] += strtonum($6);  
+        arr["ppack" ] += strtonum($8);  
+        arr["time" ] += strtonum($10);  
+        count += 1  
+    }  
+    END{  
+        for (v in arr)  
+        {  
+            print v, "=" , arr[v];  
+        }  
+        if (count > 0)  
+            print "average time = " , arr[ "time" ]/count;  
+        else   
+            print "average time = 0" ;  
+    }  
+
+6.6)awk中数组的排序问题
+awk中的数组是关联式的，因此在使用for(key in array)的方式进行遍历的时候，输出的顺序并不是按照key
+进行排序输出的，因为awk中的数组内部采用hash的方式实现，因此输出的顺序能是不确定的。
+当需要按照某种顺序输出元素时，需要使用到asort和asorti函数来辅助。
+asort的原型为：asort(array1[, arrary[2]]) 
+asort是将数组的value值进行排序，并且返回数组中元素的个数。如果采用asort(array)这种简略方式，
+那么重排之后的数据将会保 存在array中，但是关联关系将会被取消。排序结束之后，
+原先的关联关系被取消，取而代之的是index与value的对应关系。
+如果需要对key进行排序，那么可以使用asorti函数，该函数的原型为：asorti(array1[, array2])
+asorti将数组的key值进行排序，并返回数组中元素的个数。与asort类似，如果使用asorti(array)这种
+简略的方式，那么排序后的key值成为value值，原先的关联关系被破坏。
+如过想要保留原先的关联关系，则可以使用asorti(array1, array2)这种形式，排序后的key被保存在array2数组中。
+假定有如下的问题：有一个文件包含了一组人员的信息，格式的类型为：
+Name     Age    Height  Weight   
+wanger   18    173      74  
+liusan   20    177      80  
+zhaojun  24    167      49  
+tianjing 30    179      75  
+haobo    28    171      65
+我们想要按照其中的某一项（比如身高）进行排序，当然是用sort工具就可以实现，现在我们使用awk来实现：
+{  
+    arrary[$2] = $0  
+}  
+END{  
+    asorti(arrary, height);  
+    for (h in height)  
+    {  
+        print arrary[height[h]];  	#height[h]对应的值是arrary的key
+    }  
+} 
+6.6) var=`echo $str|awk 'BEGIN{FS="|"}{print $2}'`
+var=`echo $str|awk -F"|" '{print $2}'`
+
+7)钱字号$本身也是个变量，这个咚咚代表的是目前这个shell的线程号，亦即所谓的PID。可通过echo $$查看。
+
+8)echo删除字符，只能是从头或从尾开始
+
+9)下面的脚本能循环用ml.txt中的行替换makefile中的行并编译。
+while read Var
+do
+sed 's/^O.*\.o$/OBJS = '$Var'\.o/g' makefile>makefile
+make
+done<ml.txt
+其中makefile中的内容如：
+OBJS = fndb7131.o
+clean:
+	rm *.c *.i *.err
+
+10)for也可以这样用
+for i in *.txt
+do
+echo $i
+done
+这里的*.txt表示当前目录下的每一个txt文件名
+
+11)待修改
+welcome()
+{
+	clear
+	echo "      **********************welcome!*****************************"
+  echo "      *                                   $TODAY   $TIME *"
+  echo "      *                    ︵                                   *"
+	echo "      *                   @ˉˉ@                                  *"
+	echo "      *       思念         ︶                                   *"
+	echo "      *                                                         *"
+	echo "      ***********************************************************"
+	echo "                                                    按回车键继续"	
+	read			#该句的作用是按回车键继续，写成read a（任意变量名称）也行。
+	clear
+}
+
+TODAY=`date +%Y%m%d`
+TIME=`date|awk '{print $4}'`
+welcome
+	
+cat test.txt|while read LLINE
+	do
+		echo $LLINE	
+	done
+
+12)以下是cdtmain.sh脚本中的一段：
+……
+ttyno=`tty | cut -c 10-13`	# get tty number
+……
+while [ "" = "" ]
+do 
+clear
+echo ""
+echo "********** 构件开发工具(CDT) Ver1.5 **********"
+echo ""
+echo "\t[$sc_cdtdd] Edit Data-Dictionary"
+echo "\t[$sc_cdtddu] Make DDU/PDA Offset"
+echo "\t[$sc_cdtformdefine] Define Form"
+echo "\t[$sc_cdtobjectdefine] Define Object"
+echo "\t[$sc_cdtcompio] Define Component I/O"
+echo "\t[$sc_cdtcomptest] Test Component"
+echo "\t[$sc_cdtcompprog] Make Component Program (Frame)"
+echo "\t[$sc_cdttrandesc] Define Transaction Descript"
+echo "\t[$sc_cdttranio] Define Transaction I/O"
+echo "\t[$sc_cdttable] Make Table's structure & program (fdb*.h,fdb*.ec)"
+echo "\t[$sc_cdtquit] Exit"
+echo ""
+echo "\tPlease choose:"
+read key
+case $key in
+	$sc_cdtdd)
+		cdtdd（可执行子程序）
+		;;
+	$sc_cdtddu)
+		cdtddu（可执行子程序）
+		;;
+	$sc_cdtformdefine)
+		cdtformdefine（可执行子程序）
+		;;
+	$sc_cdtobjectdefine)
+		cdtobjectdefine（可执行子程序）
+		;;
+	$sc_cdtcompio)
+		cdtcompio（可执行子程序）
+		;;
+	$sc_cdtcomptest)
+		cdtcomptest（可执行子程序）
+		;;
+	$sc_cdtcompprog)
+		cdtcompprog（可执行子程序）
+		;;
+	$sc_cdttrandesc)
+		cdttrandesc（可执行子程序）
+		;;
+	$sc_cdttranio)
+		cdttranio（可执行子程序）
+		;;
+	$sc_cdttable)
+		cdttable（可执行子程序）
+		;;
+	$sc_cdtquit)
+		exit
+		;;
+esac
+done
+
+13)以下脚本用于不断刷新时间
+while [ 1 ]
+do
+sleep 1
+date=`date|awk '{print $4}'`
+clear
+echo $date &
+done
+
+18)民生银行_script_刘敬民_学习
+#以下脚本用于从文件$2中剔除$1中已经含有的行，并把剩下的行存到$3中
+finder()
+{
+	finderflag="ok"
+	while read oLder
+	do
+		if [ "$oLder" = "$sLine" ]; then
+		finderflag="bb"
+		fi
+	done<$1 #这里的$1和下面的$1不一样，这里的是finder函数的$1
+}
+
+if [ -f $3 ]; then
+	rm $3
+	touch $3
+else
+	touch $3
+fi
+
+while read sLine
+do
+	finder $1
+	if [ "$finderflag" = "ok" ];then
+	echo $sLine
+	fi
+done<$2>>$3
+
+exit 0
+19)民生银行_script_刘敬民_学习
+#无参数时表示将当前目录下的所有.ec文件转换为.c文件
+#有参数时表示将$1目录下的所有.ec文件转换为.c文件
+
+if [ "$1" == "" ]; then
+	echo "确定在当前路径下转换请输:y,否则请输其它字符"
+	read yn
+	if [ ! "$yn" == "y" ]; then
+	exit 0
+	fi
+fi
+
+#一般来说cd应放在前面，要确定好路径
+if [ ! "$1" == "" ]; then
+	cd $1
+fi
+
+temtxt=tem_l_j_m.txt
+temtxt_1=tem_l_j_m_1.txt
+touch $temtxt
+touch $temtxt_1
+ls *.ec>$temtxt
+#如果把上一句改成ls *.ec|echo >$temtxt，
+#则下面需要修改，因为这样$temtxt中的文件名就不再是一个一行
+cut -d'.' -f 1 $temtxt >$temtxt_1
+while read tem
+do
+	mv $tem.ec $tem.c
+done<$temtxt_1
+rm $temtxt
+rm $temtxt_1
+
+exit 0
+20)民生_script_黄健祥，以下脚本用来不断从一个文件中读取一行内容，并据此来查找一些信息：
+cdtr()
+{
+	if [ "$1" = "" ]; then
+		echo Usage: cdtr TranNo
+		return
+	fi
+	s=`find /cmbc/src/trans -type d -name $1|grep -v rp 2>/dev/null`
+	if [ "$s" = "" ]; then
+		echo $1 not found
+	else
+		cd $s
+		echo $s/t$1.ec
+	fi
+}
+
+while read sLine
+do
+	echo $sLine
+	cdtr $sLine
+	find . -name '*.ec'|xargs grep =|grep '('|grep -v 'GetPDA'|grep -v PutDDU
+
+done<trcdlist.txt>>usrlist.txt
+
+21)民生银行_script_刘敬民_学习，以下脚本内容加入.bashrc后，cdd 任一路径名，直接到达。
+cdd()
+{
+	if [ "$1" = "" ]; then
+		echo Usage:cdd direction
+		exit 0
+	fi
+	s=`find /home/songguo -type d -name $1 2>/dev/null`
+	if [ "$s" = "" ]; then
+		echo $1 not found
+	else
+		cd $s
+	fi
+	exit 0
+}
+
+
+22)民生_script_黄健祥，以下脚本用来不断从一个文件中读取文件名，并打包至hjx.tar：
+tar -cvf hjx.tar readme.txt #-cvf中cv和f的顺序不能换，f后面一定要直接接待打包成的包名。
+
+while read sLine
+do
+	echo $sLine
+	tar -rvf hjx.tar $sLine
+done<list.txt
+
+23)民生_夏至成
+#!/bin/sh
+if [ "$1" = "" ]
+        then
+                echo Usage: cdtr TranNO
+                return
+        fi
+        s=`find /cmbc/src/trans -type d -name $1|grep -v rp 2>/dev/null`
+        if [ "$s" = "" ]
+        then
+                echo $1 not found
+        else
+                cd $s
+                echo $s/t$1.ec
+        fi
+cp $s/t$1.ec /cmbc/usr/xiazc/t$1.ec.202
+ftp -n<<!	#-n表示禁止自动连接，这样就可以用user来登录了。自动连接时会要求输出密码导致无法登录
+open 177.0.0.11
+user cmbc duck
+binary
+cd $s
+lcd /cmbc/usr/xiazc
+prompt
+mget $s/t$1.ec
+close 
+bye 
+!
+mv /cmbc/usr/xiazc/t$1.ec /cmbc/usr/xiazc/t$1.ec.11
+diff /cmbc/usr/xiazc/t$1.ec.11 /cmbc/usr/xiazc/t$1.ec.202
+ftp -n<<!
+open 177.0.0.61
+user cmbc cmbc
+binary
+cd $s
+lcd /cmbc/usr/xiazc
+prompt
+mget $s/t$1.ec
+close 
+bye
+!
+mv /cmbc/usr/xiazc/t$1.ec /cmbc/usr/xiazc/t$1.ec.61
+echo "123"
+diff /cmbc/usr/xiazc/t$1.ec.61 /cmbc/usr/xiazc/t$1.ec.202
+
+24)由于rm过于凶险，本人也误删过自己的文件，所以写下了下面ko命令，用于代替rm：
+j=$#
+i=1
+while [ $i -le $j ]
+do
+	mv $1 /home/songguo/trash/
+	shift
+	i=$(($i+1))
+done
+以下脚本执行（sh test.sh 1 2 3）结果为6
+#!/bin/bash
+s=0
+for i in $*
+do
+	s=$(($i+$s))
+done
+echo $s
+
+关于shell中的for循环用法很多，一直想总结一下，今天网上看到上一篇关于for循环用法的总
+结，感觉很全面，所以就转过来研究研究，嘿嘿…
+for((i=1;i<=10;i++));do echo $(expr $i \* 4);done
+在shell中常用的是 for i in $(seq 10)
+for i in `ls`
+for i in ${arr[@]}
+for i in $* ; do
+for File in /proc/sys/net/ipv4/conf/*/accept_redirects; do           */
+for i in f1 f2 f3 ;do
+for i in *.txt
+for i in $(ls *.txt)
+for in语句与` `和$( )合用，利用` `或$( )的将多行合为一行的缺陷，实际是合为一个字符串
+数组
+============ -_- ==============for num in $(seq 1 100)
+LIST=”rootfs usr data data2″
+for d in $LIST; do
+用for in语句自动对字符串按空格遍历的特性，对多个目录遍历
+for i in {1..10}
+for i in stringchar {1..10}
+awk ‘BEGIN{for(i=1; i<=10; i++) print i}’
+注意：AWK中的for循环写法和C语言一样的
+===============================================================
+arr=(“a” “b” “c”)
+echo “arr is (${arr[@]})”
+echo “item in array:”
+for i in ${arr[@]}
+do
+echo “$i”
+done
+echo “参数,\$*表示脚本输入的所有参数：”
+for i in $* ; do
+echo $i
+done
+echo
+echo ‘处理文件 /proc/sys/net/ipv4/conf/*/accept_redirects：’
+for File in /proc/sys/net/ipv4/conf/*/accept_redirects; do
+echo $File
+done
+echo “直接指定循环内容”
+for i in f1 f2 f3 ;do
+echo $i
+done
+echo
+echo “C 语法for 循环:”
+for (( i=0; i<10; i++)); do
+echo $i
+done
+最后for循环的具体使用，还得看环境支持
+
+25)
+#isql cmbc << !
+
+#unload to card.txt select card from eviaa where card like '621399017%';
+#!
+
+if [ $# -ne 3 ]
+
+then
+	echo "Usage:sh upd_mima.sh sbno pswd cardfile\n";
+	return
+
+fi
+
+
+for card in `cat card.txt|sed "s/|//g"`
+
+do
+	./mima $1 $2 $card|read teps pswd
+
+#	echo $teps $pswd
+
+isql cmbc << !
+
+update eviaa set teps='$teps',pswd='$pswd' where card = '$card';
+
+!
+
+done
+
+26)
+SQL()
+
+{
+
+      db2 connect to eusp;
+      db2 set schema eusp;
+      db2
+
+}
+
+
+if [ -f $2 ]
+
+then
+	cat /dev/null > $2
+
+fi
+
+
+if [ -f temp.txt ]
+
+then
+	/bin/rm  temp.txt
+
+fi
+
+
+SQL << !  >>/dev/null
+
+export to ./temp.txt of del $1
+
+!
+
+
+cat temp.txt |while read line
+
+do 
+echo "${line}|"|tr ','  '|'|sed 's/"//g'|sed 's/+//g'|sed 's/-//g'|sed 's/ //g' >> $2
+
+done
+/bin/rm  ./temp.txt
+
+27)脚本中可以这样执行sql语句：
+db2 < 路径/test.sql
+(informix数据库)isql < 路径/test.sql
+数据库是db2时，test.sql文件内容如：
+set schema cmbc
+drop table mixya
+create table mixya( \
+atnu char(7) not null, \
+tlno char(15) , \
+tmsp varchar(20) \
+)
+terminate
+数据库是informix时需要作一些变动
+
+
+79)以下脚本用于比较两个文件中!下面的内容，若不同，则打印出!后面的字符串
+fortable.awk：
+BIGIN{flag=0}																		#让flag=0	循环读
+{																								#若flag==1且找到!
+if($1~/!/ && flag==1)														#		让flag=0
+	flag=0																				#若找到sh中的!$1(var)
+}																								#		让flag=1
+{																								#		继续循环读
+	if($1==var){flag=1;next}		#若flag==1
+}																								#		写操作
+{
+if(flag==1)
+	print $1
+}
+
+fortable.sh：
+rm test_1 2>/dev/null
+rm test_2 2>/dev/null
+rm test_1_tmp 2>/dev/null
+rm test_1_tmp 2>/dev/null
+rm test_tmp 2>/dev/null
+
+diff_func()
+{
+Var="!$1"
+awk -f fortable.awk var="$Var" test1.txt >test_1
+awk -f fortable.awk var="$Var" test2.txt>test_2
+sort test_1 >test_1_tmp
+sort test_2 >test_1_tmp
+diff test_1_tmp test_2_tmp >test_tmp
+if [ -s test_tmp ];then
+	echo $1>>test
+fi
+}
+
+rm test
+
+while read Line
+do
+	diff_func $Line
+done<test.txt
+
+rm test_1 2>/dev/null
+rm test_2 2>/dev/null
+rm test_1_tmp 2>/dev/null
+rm test_1_tmp 2>/dev/null
+rm test_tmp 2>/dev/null
+
+向一行awk命令传值
+下面的例子在命令行中设置变量AGE=10，然后传入awk中，查询年龄在10岁以下的所有学生
+awk 'if($5<AGE)print $0' AGE=10 grade.txt
+向awk脚本传值与向awk一行命令传值方式大体相同，格式为：
+awk -f awk_file var=value input_file
+
+80)脚本中，可以用sleep 2来停止两秒，比如：
+echo "haha"
+sleep 2
+exec用于执行命令、或脚本、或外部可执行程序，会新建一个shell去执行。         
+比如：exec test2.sh(这里test2.sh具有可执行权限)
+
+81）以下脚本用于将当前目录下大于10K的文件转移到/tmp目录下
+for FileName in `ls -l|awk '$5>10240{print $9}'`
+do
+	mv $FileName /tmp
+done
+ls -al /tmp
+echo "Done!"
+以上脚本其实是有问题的，执行会出现错误。问题在于tmp文件夹可能大于10K。值得学习的地方在于：反引号的结果若重定向到一个文件的话是一行一行的，此时for仍然可以使用。
+
+82)有一普通用户想在每周日凌晨零点零分定期备份/user/backup到/tmp目录下，该如何做？
+方法一：用户应使用crontab -e命令创建crontab文件，格式如下：
+0 0 * * sun cp -r /user/backup /tmp(这个地方应该有错，sun应该用0或7代替)
+方法二：用户先在自己目录下新建文件file，文件内容如下：
+0 0 * * 7 cp -r /user/backup /tmp
+然后执行crontab file使生效。（不建议使用方法二，因为若新建的file文件不是方法一的file时，若方法一有任务时，方法二的文件会把一的文件覆盖）
+
+83)设计一个shell程序，在每月的第一天备份并压缩/etc目录下的所有内容，存放在/root/bak目录里，且文件名如下形式yymmdd_etc，yy为年，mm为月，dd为日。shell程序fileback存放在/usr/bin目录下。
+fileback.sh如下：
+DIRNAME=`ls /root|grep bak`
+if [ -z "$DIRNAME" ];then
+	mkdir /root/bak
+	cd /root/bak
+fi
+BACKETC=`date +%Y%m%d`_etc.tar.gz
+tar zcvf $BACKETC /etc
+eco "fileback finished!"
+编写任务定时器：
+echo "0 0 1 * * /bin/sh /usr/bin/fileback.sh">/root/etcbakcron
+crontab /root/etcbakcron
+最好使用crontab -e命令添加定时任务：
+0 0 1 * * /bin/sh /usr/bin/fileback.sh
+
+84)下面的脚本用于telnet：
+inputfile=in
+outputfile=out
+rm -rf $inputfile
+rm -rf $outputfile
+mknod $inputfile p
+
+exec 7<>$outputfile
+exec 8<>$inputfile
+
+telnet $REMOTE_SERVER <&8 >&7 &
+sleep $TELNET_DURATION
+echo $TELNET_USER >>$inputfile
+sleep $TELNET_DURATION
+echo $TELNET_PASSWORD >>$inputfile
+
+85)以下关于telnet：cpdata脚本
+#本脚本请勿在公司电脑上更改，运行，否则可能造成硬盘数据丢失
+#本工具用于拷贝61环境上informix数据库的表数据到12环境上的db2数据库
+#                                   ---刘敬民
+clear
+echo ""
+echo ""
+echo ""
+echo ""
+echo "****************************************************"
+echo "*                                                  *"
+echo "*       请这样使用：cpdata 表名                    *"
+echo "*                                                  *"
+echo "*                             请耐心等待...        *"
+echo "*                                                  *"
+echo "****************************************************"
+
+if [ "$1" = "" ];then
+	echo "please use as:cpdata 表名"
+	exit
+fi
+
+
+
+Path_ljm=/cmbc/usr/ljm
+in_ljm=in_ljm`date +%H%M%S`.txt
+cd $Path_ljm
+rm $in_ljm 2>/dev/null
+mknod $in_ljm p
+
+exec 8<>$in_ljm
+
+telnet 177.0.0.61 <&8 &
+sleep 1
+echo cmbc >>$in_ljm
+sleep 1
+echo cmbc >>$in_ljm
+sleep 1
+echo "cd $Path_ljm/unldir" >>$in_ljm
+sleep 1
+echo "isql cmbc <<!" >>$in_ljm
+sleep 2
+echo "unload to $Path_ljm/unldir/$1.unl select * from $1" >>$in_ljm
+sleep 4
+echo "!" >>$in_ljm
+Str1="aa"
+Str2="bb"
+while [ "$Str1" != "$Str2" ]
+do
+	Str1=`ls -ltr|grep $1|awk '{print $5}'`
+	sleep 2
+	Str2=`ls -ltr|grep $1|awk '{print $5}'`
+done
+echo "exit">>$in_ljm
+
+cd $Path_ljm
+rm $in_ljm #
+
+echo "即将完成，请等待..."
+
+ftp -n<<!
+open 177.0.0.61
+user cmbc cmbc
+cd $Path_ljm/unldir
+lcd $Path_ljm
+get $1.unl
+close
+bye
+!
+
+ljm_tmp=ljm_tmp`date +%H%M%S`
+rm $ljm_tmp 2>/dev/null
+awk -f cpdata.awk $1.unl>>$ljm_tmp
+mv $ljm_tmp $1.unl
+cd /cmbc/tmp
+if [ -s $1.unl ];then
+	clear
+	echo ""
+	echo "*******************************************"
+	echo "*                                         *"
+	echo "*    尴尬！/cmbc/tmp下已有相应的unl文件   *"
+	echo "                                          *"
+	echo "                         正在退出...      *"
+	echo "                                          *"
+	echo "*******************************************"
+	rm $Path_ljm/$1.unl
+	exit
+fi
+mv $Path_ljm/$1.unl /cmbc/tmp/
+
+db2 <<!
+connect to cmbc
+set schema cmbc
+import from $1.unl of del insert into $1
+terminate
+!
+echo ""
+if [ $? -ne 0 ];then
+	echo "error!"
+else
+	echo "完全成功!!!"
+fi
+echo ""
+echo "*********************************"
+echo "*                               *"
+echo "*  看到这句，说明全部执行完毕！ *"
+echo "*                               *"
+echo "*********************************"
+cpdata.awk
+BEGIN{FS="|"}
+{
+	for(i=1;i<=NF;i++)
+	{
+		if($i~/,/)
+			printf "\"%s\",",$i 
+		else
+			printf "%s,",$i
+	}
+	printf "\n"
+}
+
+86)I/O重定向通常与FD有关，shell的FD通常为10个，即0～9；
+常用FD有3个，为0（标准输入）、1（标准输出）、2（标准错误输出）
+用<来改变读进的数据信道，使之从指定的档案读进；
+用>来改变送出的数据，使之输出到指定的档案；
+0是<的默认值，<与0<一样，1是>的默认值，>与1>一样
+管道是将上一个命令的stdout（1）接到下一个命令的stdin（0）
+tee命令是在不影响I/O的情况下，将stdout复制一份到档案去
+exec命令常用来替代当前shell并重新启动一个shell，换句话说，并没有启动子shell。使用这一命令时任何现有环境都将被清楚。exec在对文件描述符进行操作的时候，也只有在这时，exec不会覆盖你当时的shell环境。
+cat <>file以读写的方式打开file
+<&-关闭标准输入
+>&-关闭标准输出
+n<&-将n号输入关闭
+n>&-将n号输出关闭
+exec 3<>File 打开File并且给它分配fd3
+exec 3>&-关闭fd3
+
+87)公司mkver
+	DATE=`date +%Y%m%d%s`
+	TUXDIR=/cmbc/tuxedo
+	mypath=`pwd`
+	echo "生成动态连接库"
+	cd $mypath
+	BUILD=$EUSPDIR/build
+	ans="yes"
+	cd $HOME/lib
+	echo "请稍候......"
+	libname_so="lib"`basename \`tty\``".so"
+	libname_a=$libname_so".a"
+
+	OPENDATABASE()
+       {
+               db2 connect to eusp;
+               db2 set schema eusp;
+               db2
+       }
+	CLOSEDATABASE()
+	{
+		db2 connect reset;
+	}
+
+	if [ -e tran.list ]
+	then
+		rm tran.list
+	fi
+	if [ -e tran.tmp ]
+	then
+		rm tran.tmp
+	fi
+
+	OPENDATABASE << !  >>/dev/null
+	export to tran.tmp of del select 't'||trancode from trantbl where substr(trancode,1,1) not in ('I','O') and attribute='1'
+	CLOSEDATABASE
+!
+
+	for trancode in `cat tran.tmp|sed 's/"//g'`
+	do
+		echo ${trancode} >> tran.list
+	done
+	
+	echo "#! ." >tran.tmp
+	echo "usp_memset" >>tran.tmp
+	cat tran.tmp tran.list >tran.exp
+	
+
+	ans="no"
+	echo "请重新生成静态交易库libtrans.a吗？(Y/N)"
+	while [ 1 ]
+	do 
+		read ans
+		case $ans in
+			n|N)
+				exit
+				;;
+			y|Y)
+				break;
+				;;
+			*)
+				echo "请选择(Y/N)"
+				;;
+			
+		esac
+	done
+
+
+#ld all libs .if some func not found, add libs which contain it
+#ld -b64  -o $libname_so $HOME/lib/libtrans.a /cmbc/eusp/obj/ctools.o $HOME/eusp/lib/libeuspdb2lib.a $HOME/lib/libfc.a $HOME/lib/libdb.a $HOME/lib/libbc.a  -bnoentry -bI:$BUILD/tran.exp -bE:tran.exp -bM:SRE  -G  -lc -lm
+ld -b64  -o $libname_so $HOME/lib/libtrans.a $HOME/eusp/lib/libeuspdb2lib.a $HOME/lib/libfc.a $HOME/lib/libcf.a $HOME/lib/libdb.a $HOME/lib/libbc.a  -bnoentry -bI:$BUILD/tran.exp -bE:tran.exp -bM:SRE  -G  -lc -lm
+
+#校验是否引用了未定义的符号
+flag=0
+#描述在euspserver中找不到的符号
+dump -X64 -Tv $EUSPDIR/bin/euspserver >.eusp.imp
+for i in `dump -X64 -Tv $libname_so | grep  undef | grep "\.\." | awk '{print $8}'`
+do
+	#如果动态库中存在euspserver中也不存在的符号发出警告     
+	grep $i .eusp.imp  1>/dev/null 2>&1
+        ret=$?
+
+        if [ $ret -ne 0 ]
+        then
+                echo "警告:符号" $i "找不到,请查证后重新编译"
+		flag=1
+        fi
+done
+rm .eusp.imp
+#存在找不到的符号，不再重新生成动态库
+if [ $flag  -eq 1 ]
+then
+	exit
+fi
+	#mv $EUSPDIR/lib/libtran.so $EUSPDIR/lib/libtran.so.$DATE 1>/tmp/err 2>&1
+	mv $libname_so $EUSPDIR/lib/libtran.so
+	rm tran.list
+	rm tran.tmp
+	cd ..
+	echo  "生成动态链接库成功......"
+	cd $mypath
+	echo  "现在你可以重新启动系统了"
