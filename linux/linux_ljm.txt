@@ -1,0 +1,1680 @@
+       /*************************************
+       *这个世界上总有那么一些人，         *
+       *他们英勇无畏，固执，乃至偏执，     *
+       *放荡不羁，骄傲，而又狂妄。         *
+       *即使到了绝境，他们也绝不妥协。     *
+       *宁愿死，也不愿输。                 *
+       **************************************/
+1)在终端复制是ctrl+insert,粘贴是shift+insert;中断是ctrl+c或者ctrl+d;
+1.1)用文本编辑器时，既不能用word也不能用windows自带的记事本，word保存的不是纯文本文件，而记事本会自作聪明的在文件开始的地方
+加上几个特殊字符，结果会导致程序出现莫名其妙的错误。这不论c语言还是shell脚本及python语言。
+
+2)vi中向上翻页是ctrl+b,向下翻页是ctrl+f；上移是k,下移是j,左移是h，右移是l；
+到达屏幕显示页的首行是H，到达显示页的尾行是L；到达行首是0，到达行尾是＄；
+到达文件尾是shift+g;
+查询是/查询内容（以上均指在命令行模式），n是查询下一个，N是查询上一个；
+
+3)PID：进程号；PPID：父进程号；
+
+4)kill的用法：kill -信号 PID
+-1表示重新读取一次参数的配置文件；
+-9通常用于强制删除一个不正常的工作；
+-15表示以正常的方式终止一项工作；
+
+5)ps -ef能查出进程号和子进程号
+ps -elf既能查出进程号和子进程号，又能查出程序的状态
+ps aux能查出程序的状态和cpu、内存等的使用情况（注意aux前面没有-）
+上面说的程序的状态是S对应的列显示的，有五种状态：
+R表示程序正在运行中；
+S表示程序正在睡眠状态，但可以被唤醒；
+D表示不可被唤醒的睡眠状态，通常这支程序可能在等待I/O的情况；
+T表示停止状态，可能是在工作控制（背景暂停）或除错状态；
+Z表示僵局状态，程序已经终止但却无法被移除至内存外
+top命令和ps命令的作用基本相同；
+
+6)一、修改linux的时间
+root使用date指令:date -s
+1、只修改日期,不修改时间,输入:date -s 2007-08-03
+2、只修改时间,输入:date -s 14:15:00
+3、同时修改日期时间,注意要加双引号,日期与时间之间有一空格,输入:
+   date -s "2007-08-03 14:15:00"  
+4、修改完后,记得输入:clock -w把系统时间写入CMOS
+二、修改时区不重启
+在root下
+1、复制相应的时区文件，替换系统时区文件：
+   1. cp /usr/share/zoneinfo/$主时区/$次时区 /etc/localtime  
+例如：
+   1. cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime  
+
+7)Linux目录结构
+与Windows将硬盘看做“C盘”、“D盘”几个独立的分区不同，Linux将整个文件系统看做一棵树，这棵树的树根叫做根文件系统，用/表示。各个分区通过“挂载”（Mount）以文件夹的形式访问。
+在/中的文件夹很多，本文介绍常见文件夹的意义。Linux的目录结构确实比较复杂，但设置合理、层次鲜明。本文以FHS 2.3[1]为例进行介绍。
+
+    1 根文件系统
+    2 /usr目录结构
+    3 /var目录结构
+    4 参考资料
+
+根文件系统
+/bin
+    这一目录中存放了供所有用户使用的完成基本维护任务的命令。其中bin是binary的缩写，表示二进制文件，通常为可执行文件。一些常用的系统命令，如cp、ls等保存在该目录中。 
+/boot
+    这里存放的是启动Linux时使用的一些核心文件。如操作系统内核、引导程序Grub等。 
+/dev
+    在此目录中包含所有的系统设备文件。从此目录可以访问各种系统设备。如CD-ROM，磁盘驱动器，调制解调器和内存等。在该目录中还包含有各种实用功能，如用于创建设备文件的MAKEDEV。 
+/etc
+    该目录中包含系统和应用软件的配置文件。 
+/etc/passwd
+    该目录中包含了系统中的用户描述信息，每行记录一个用户的信息。 
+/home
+    存储普通用户的个人文件。每个用户的主目录均在/home下以自己的用户名命名。 
+/lib
+    这个目录里存放着系统最基本的共享链接库和内核模块。共享链接库在功能上类似于Windows里的.dll文件。 
+/lib64
+    64位系统有这个文件夹，64位程序的库。 
+/lost+found
+    这并不是Linux目录结构的组成部分，而是ext3文件系统用于保存丢失文件的地方。不恰当的关机操作和磁盘错误均会导致文件丢失，这意味着这些被标注为“在使用”，但却并未列于磁盘上的数据结构上。正常情况下，引导进程会运行fsck程序，该程序能发现这些文件。除了“/”分区上的这个目录外，在每个分区上均有一个lost+found目录。 
+/media
+    可移动设备的挂载点，当前的操作系统通常会把U盘等设备自动挂载到该文件夹下。 
+/mnt
+    临时用于挂载文件系统的地方。一般情况下这个目录是空的，而在我们将要挂载分区时在这个目录下建立目录，再将我们将要访问的设备挂载在这个目录上，这样我们就可访问文件了。（注意在GNOME中，只有挂载到/media的文件夹才会显示在“计算机”中，挂载到/mnt不会做为特殊设备显示，详见自动挂载分区） 
+/opt
+    多数第三方软件默认安装到此位置，如Adobe Reader、google-earth等。并不是每个系统都会创建这个目录。 
+/proc
+    它是存在于内存中的虚拟文件系统。里面保存了内核和进程的状态信息。多为文本文件，可以直接查看。如/proc/cpuinfo保存了有关CPU的信息。 
+/root
+    这是根用户的主目录。与保留给个人用户的/home下的目录很相似，该目录中还包含仅与根用户有关的条目。 
+/sbin
+    供超级用户使用的可执行文件，里面多是系统管理命令，如fsck, reboot, shutdown, ifconfig等。 
+/tmp
+    该目录用以保存临时文件。该目录具有Sticky特殊权限，所有用户都可以在这个目录中创建、编辑文件。但只有文件拥有者才能删除文件。为了加快临时文件的访问速度，有的实现把/tmp放在内存中。 
+/usr
+    静态的用户级应用程序等，见下。 
+/var
+    动态的程序数据等，见下文。 
+
+/usr目录结构
+/usr通常是一个庞大的文件夹，其下的目录结构与根目录相似，但根目录中的文件多是系统级的文件，而/usr中是用户级的文件，一般与具体的系统无关。
+提示：
+usr最早是user的缩写，/usr的作用与现在的/home相同。而目前其通常被认为是 User System Resources 的缩写，其中通常是用户级的软件等，与存放系统级文件的根目录形成对比。[2]
+应注意，程序的配置文件、动态的数据文件等都不会存放到/usr，所以除了安装、卸载软件外，一般无需修改/usr中的内容。说在系统正常运行时，/usr甚至可以被只读挂载。由于这一特性，/usr常被划分在单独的分区，甚至有时多台计算机可以共享一个/usr。
+/usr/bin
+    多数日常应用程序存放的位置。如果/usr被放在单独的分区中，Linux的单用户模式不能访问/usr/bin，所以对系统至关重要的程序不应放在此文件夹中。 
+/usr/include
+    存放C/C++头文件的目录 
+/usr/lib
+    系统的库文件 
+/usr/local
+    新装的系统中这个文件夹是空的，可以用于存放个人安装的软件。安装了本地软件的/usr/local里的目录结构与/usr相似 
+/usr/sbin
+    在单用户模式中不用的系统管理程序，如apache2等。 
+/usr/share
+    与架构无关的数据。多数软件安装在此。 
+/usr/X11R6
+    该目录用于保存运行X-Window所需的所有文件。该目录中还包含用于运行GUI要的配置文件和二进制文件。 
+/usr/src
+    源代码 
+
+/var目录结构（/var ? 系统可变的数据文件，如日志、数据库数据等）
+/var中包括了一些数据文件，如系统日志等。/var的存放使得/usr被只读挂载成为可能。
+/var/cache
+    应用程序的缓存文件 
+/var/lib
+    应用程序的信息、数据。如数据库的数据等都存放在此文件夹。 
+/var/local
+    /usr/local中程序的信息、数据 
+/var/lock
+    锁文件 
+/var/log
+    日志文件 
+/var/opt
+    /opt中程序的信息、数据 
+/var/run
+    正在执行着的程序的信息，如PID文件应存放于此 
+/var/spool
+    存放程序的假脱机数据（即spool data） 
+/var/tmp
+    临时文件 
+
+8)touch最常被使用的情况是
+建立一个空的档案
+将某个档案日期修订为目前
+touch 档案名，建立一个新档案
+
+9)diff [-bBi] from-file(或目录) to-file(或目录)
+-b忽略一行当中，仅有多个空白的差异
+-B忽略空白行的差异
+-i忽略大小写的不同
+
+10)export可直接查看环境变量。
+在shell里面直接增加或修改环境变量（PATH,alias等），重启后失效。想长久有效就修改/ect/profile文件，或者~/.bash_profile，或者~/.bashrc文件，这三个均为配置文件，前一个为全局变量，后两个为用户变量。全局变量对所有用户均生效。一般来说，用户主目录不会有.profile文件，若有的话就要注意了，它会覆盖掉/ect/profile文件。
+修改配置文件后要想马上生效，就source一下，或者新开一个shell，或者注销重新登录吧。
+
+11)在终端机下可用[wget 网址]下载东西, wget功能非常强大. 但是wget只能处理利用用户名/密码方式限制访问的网站，可以利用两个参数：
+–http-user=USER设置HTTP用户
+–http-passwd=PASS设置HTTP密码
+对于需要证书做认证的网站，就只能利用其他下载工具了，例如curl。
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo dpkg -i google-chrome*;sudo apt-get -f install
+DEB是Debian软件包格式的文件扩展名，跟Debian的命名一样，DEB也是因Debra Murdock而得名，她是Debian创始人Ian Murdock的太太。
+Debian包是Unixar的标准归档，将包文件信息以及包内容，经过gzip和tar打包而成。
+处理这些包的经典程序是dpkg，经常是通过Debian的apt-get来运作。
+通过Alien工具，可以将deb包转换成rpm、tar.gz格式。
+deb包在Linux操作系统中类似于windows中的软件包（exe)，几乎不需要什么复杂的编译即可通过鼠标点击安装使用。此外,deb广泛应用于越狱后iOS软件及MeeGo（含Maemo软件）中。
+apt-get是一条linux命令，是debian，ubuntu发行版的包管理工具，与红帽中的yum工具非常类似。适用于deb包管理式的操作系统，主要用于自动从互联网的软件仓库中搜索、安装、升级、卸载软件或操作系统。
+apt-get命令一般需要root权限执行，所以一般跟着sudo命令。
+例：sudo apt-get xxxx
+
+dpkg -l
+列出所有已安装的软件包
+dpkg -l package-name-pattern列出任何和模式相匹配的软件包。假如您不知道软件包的全名，您能够使用“*package-name-pattern*”。
+apt-cache search package 搜索包
+apt-cache show package 获取包的相关信息，如说明、大小、版本等
+
+sudo apt-get install package 安装包
+
+
+13)我想在任一路径下只须输入一个命令就可以到达路径ljm，我是用alias实现的：
+修改~/.bashrc文件，增加行alias ljm='cd $HOME/Desktop/ljm'，这样我在任一路径下输入ljm就可以到达路径ljm了。用echo "alias ljm='cd $HOME/Desktop/ljm'">>~/.bashrc比用vi修改更方便哦。
+
+15)source命令是bash shell的内置命令，从C shell而来，也叫点命令，就是一个点符号。source命令通常用于重新执行刚修改过的初始化文件，如~/.bashrc等。
+source命令还常用于在当前shell执行脚本。
+
+20)linux关机及定时关机
+shutdown命令关机
+	-c取消前一个shutdown命令
+	-f重新启动时不执行fsck(fsck是linux下的一个检查和修复文件系统的程序)
+	-F重新启动时执行fsck
+	-h将系统关机，在某种程度上功能与halt相当
+	-k只是送出信息给所有用户，但并不会真正关机
+	-n不调用init程序关机，而是由shutdown自己进行（一般关机程序是由shutdown调用init程序实现关机的），使用此参数将加快关机速度，但不建议用户使用此种关机方式。
+	-r关机之后立即重新启动系统
+	now表示立即执行，now=+0
+
+立即关机：shutdown -h now
+
+设置多久后执行shutdown命令，时间参数有hh:mm或+m两种模式。hh:mm格式表示在几点几分执行shutdown命令。例如shutdown
+10:45表示将在10:45执行shutdown。+m表示m分钟后执行shutdown，比较特别的用法是以now表示立即执行shutdown。值得注意的是这部分参数不能省略。
+定时关机sudo shutdown -h 22:00表示在22点定时关机。
+延时关机sudo shutdown +minutes（这个加号不可省略，minutes表示分钟）比如：sudo
+shutdown -h +120表示两小时后关机。
+取消前一个关机命令按ctrl+c键或输入命令：shutdown -c
+
+注意啦：shutdown -h +10&命令和shutdown -h
++10不一样的是如果准备定时10分钟关机后还有其他命令要执行的话就使用shutdown -h
++10&命令，如果只是仅仅定时10分钟关机的话就使用shutdown -h +10命令。
+
+22)at是个可以处理仅执行一次就结束排程的指令，不过要执行at时，必须要有atd这个服务的支援才行。有些版本，atd可能预设并没有启动。
+手动启用atd的方法：输入命令：/etc/init.d/atd restart
+可以设定一下开机时就启动这个服务，免得每次重新启动都得再来一次，输入命令：chkconfig atd on
+at的动作方式：事实上，由于安全的原因，并不是所有的用户都可以使用at指令。at的工作情况是这样的：先搜寻/etc/at.allow这个档案，没在这个档案的使用者不能使用at；如果/etc/at.allow不存在，就搜寻/etc/at.dency档案。写在该档案中的使用者不能使用at；如果这两个档案都不存在，那么只有root可以使用at指令。我们使用at这个指令来产生所要运行的工作，并将这个工作以文本的方式写入/var/spool/at/目录内，该工作便能等待atd这个服务的取用与执行了。
+at的使用：输入at 时间，确认后进入交互环境，输入要进行的工作命令，然后ctrl+d结束。
+batch是at命令的加强，其实就是at命令加入一些控制参数啦。它的优点在于cpu不是非常忙碌的时候才开始执行。
+万一用at/batch下达了一个错误的指令，可以用atq查询，用atrm移除。
+
+crontab这个指令所设定的工作将会循环的一起进行下去。可循环的时间为分钟，小时，日，月，周等。crontab除了可以用指令执行外，亦可编辑/etc/crontab来支持。至于让crontab可以生效的服务则是crond这个服务。
+循环执行的工作排程是由cron(crond)系统服务来控制的。这个服务默认是启动的，因为linux上本来就有许多的例行性工作。类似于at，crontab也有两个档案：/etc/cron.allow和/etc/cron.deny。以优先级来说，/etc/cron.allow比/etc/cron.deny优先，而判断上面，这两个档案只选择一个来限制而已。
+当用户使用crontab建立工作排程后，该项工作就会被纪录到/var/spool/cron/里面去了。另外，cron执行的每一项工作都会被纪录到/var/log/cron这个登录档中，所以，如果你的linux不知道是否被植入木马时，也可以搜寻一下/var/log/cron这个登录档呢。
+crontab -e是针对使用者的cron来设计的，如果是系统的例行性任务时，就不需要以crontab -e来管理你的例行性工作排程了，你只要编辑/etc/crontab这个档案就可以啦。有一点需要特别注意的是：crontab -e这个crontab其实是/usr/bin/crontab这个执行档，但是/etc/crontab可是一个纯文本文档喔。你可以以root的身份编辑一下这个档案哩。
+基本上，cron这个服务的最低侦测限制是分钟，所以cron会每分钟去读取一次/etc/crontab与/var/spool/cron里面的数据内容，因此，只要你编辑完/etc/crontab这个档案，并且将他储存，那么cron的设定就自动的会来执行了。
+crontab的使用：输入crontab -e确认后即进入编辑模式，输入你想要做的命令及时间保存退出即可。
+crontab -l查询crontab的工作内容
+crontab -r移除所有的crontab的工作内容，若仅要移除一项，请用-e去编辑。
+
+使用netstat指令或者/etc/init.d/* status能观察目前已经启动的daemon
+使用service指令或者/etc/init.d/* start的方法则公能在目前的环境下立即启动某个服务。重启后失效
+chkconfig管理系统服务默认开机启动与否
+chkconfig --list [服务名称]
+chkconfig [--level[0123456]] [服务名称][on|off]
+--list仅将目前的各项服务状态列出来
+--level设定某个服务在该level下启动或关闭。（level5应该是X窗口）
+注：用chkconfig只是设定开机自动启动，但并没有马上启动，需要下次开机后才启动
+
+23)echo a>test把test清空，再把a输入。
+echo bb>>test把bb输入到test的下一行。
+
+25)在UNIX下输入grep TXCYNO*.ucp,结果报错：Arguments too
+long.此时处理方法：输入ksh,再输grep TXCYNO*.ucp
+
+27)d目录
+c设备特殊文件
+2>/dev/null表示把错误信息送到无底洞
+
+29)sort test1|uniq>test2能把test1中的内容一行行排序、去重并重定向到test2中；也可以用sort -u test1 >test2。
+
+30	linux ar命令
+用途说明：创建静态库。a文件。用C/C++开发程序时经常用到，但很少单独在命令行中使用ar命令，一般写在makefile中，有时也会在shell脚本中用到。
+使用示例
+　　示例一 在shell脚本中使用
+　　Bash代码
+　　OS=`uname -r`
+　　ar rcs libhycu.a.$OS *.o
+　　示例二 在makefile中使用
+　　Makefile代码
+　　$（BIN1）: $（BIN1_OBJS）
+　　ar rcs $@ $^
+　　示例三 创建并使用静态库
+　　第一步：编辑源文件，test.h test.c main.c。其中main.c文件中包含main函数，作为程序入口；test.c中包含main函数中需要用到的函数。
+　　vi test.h test.c main.c
+　　第二步：将test.c编译成目标文件。
+　　gcc -c test.c
+　　如果test.c无误，就会得到test.o这个目标文件。
+　　第三步：由。o文件创建静态库。
+　　ar rcs libtest.a test.o
+　　第四步：在程序中使用静态库。
+　　gcc -o main main.c -L. -ltest
+　　因为是静态编译，生成的执行文件可以独立于。a文件运行。
+　　第五步：执行。
+　　./main
+　　示例四 创建并使用动态库
+　　第一步：编辑源文件，test.h test.c main.c。其中main.c文件中包含main函数，作为程序入口；test.c中包含main函数中需要用到的函数。
+　　vi test.h test.c main.c
+　　第二步：将test.c编译成目标文件。
+　　gcc -c test.c
+　　前面两步与创建静态库一致。
+　　第三步：由。o文件创建动态库文件。
+　　gcc -shared -fPIC -o libtest.so test.o
+　　第四步：在程序中使用动态库。
+　　gcc -o main main.c -L. -ltest
+　　当静态库和动态库同名时，gcc命令将优先使用动态库。
+　　第五步：执行。
+　　LD_LIBRARY_PATH=. ./main
+　　示例五 查看静态库中的文件
+　　[root@node56 lib]# ar -t libhycu.a
+　　base64.c.o
+　　binbuf.c.o
+　　cache.c.o
+　　chunk.c.o
+　　codec_a.c.o
+　　…
+　　xort.c.o
+　　[root@node56 lib]#
+　　[root@node56 lib]# ar -tv libhycu.a
+　　rw-r--r-- 0/0   7220 Jul 29 19:18 2011 base64.c.o
+　　rw-r--r-- 0/0   2752 Jul 29 19:18 2011 binbuf.c.o
+　　rw-r--r-- 0/0  19768 Jul 29 19:18 2011 cache.c.o
+　　…
+当我们的程序中有经常使用的模块，而且这种模块在其他程序中也会用到，这时按照软件重用的思想，我们应该将它们生成库，使得以后编程可以减少开发代码量。这里介绍命令ar，用来对库操作。
+1.ar基本用法
+　　ar命令可以用来创建、修改库，也可以从库中提出单个模块。库是一单独的文件，里面包含了按照特定的结构组织起来的其它的一些文件（称做此库文件的member）。原始文件的内容、模式、时间戳、属主、组等属性都保留在库文件中。
+　　下面是ar命令的格式：
+　　ar [-]{dmpqrtx}[abcfilNoPsSuvV] [membername] [count] archive files...
+　　例如我们可以用ar rv libtest.a hello.o hello1.o来
+生成一个库，库名字是test，链接时可以用-ltest链接。该库中存放了两个模块hello.o和hello1.o。选项前可以有‘-'字符，也可以
+没有。下面我们来看看命令的操作选项和任选项。现在我们把{dmpqrtx}部分称为操作选项，而[abcfilNoPsSuvV]部分称为任选项。
+　　{dmpqrtx}中的操作选项在命令中只能并且必须使用其中一个，它们的含义如下：
+
+    d：从库中删除模块。按模块原来的文件名指定要删除的模块。如果使用了任选项v则列出被删除的每个模块。
+    m：该操作是在一个库中移动成员。当库中如果有若干模块有相同的符号定义(如函数定义)，则成员的位置顺序很重要。如果没有指定任选项，任何指定的成员将移到库的最后。也可以使用'a'，'b'，或'i'任选项移动到指定的位置。
+    p：显示库中指定的成员到标准输出。如果指定任选项v，则在输出成员的内容前，将显示成员的名字。如果没有指定成员的名字，所有库中的文件将显示出来。
+    q：快速追加。增加新模块到库的结尾处。并不检查是否需要替换。'a'，'b'，或'i'任选项对此操作没有影响，模块总是追加的库的结尾处。如果使用了任选项v则列出每个模块。 这时，库的符号表没有更新，可以用'ar s'或ranlib来更新库的符号表索引。
+    r：在库中插入模块(替换)。当插入的模块名已经在库中存在，则替换同名的模块。如果若干模块中有一个模块在库中不存在，ar显示一个错误消息，并不替换其他同名模块。默认的情况下，新的成员增加在库的结尾处，可以使用其他任选项来改变增加的位置。
+    t：显示库的模块表清单。一般只显示模块名。
+    x：从库中提取一个成员。如果不指定要提取的模块，则提取库中所有的模块。
+
+
+　　下面在看看可与操作选项结合使用的任选项：
+
+    a：在库的一个已经存在的成员后面增加一个新的文件。如果使用任选项a，则应该为命令行中membername参数指定一个已经存在的成员名。
+    b：在库的一个已经存在的成员前面增加一个新的文件。如果使用任选项b，则应该为命令行中membername参数指定一个已经存在的成员名。
+    c：创建一个库。不管库是否存在，都将创建。
+    f：在库中截短指定的名字。缺省情况下，文件名的长度是不受限制的，可以使用此参数将文件名截短，以保证与其它系统的兼容。
+    i：在库的一个已经存在的成员前面增加一个新的文件。如果使用任选项i，则应该为命令行中membername参数指定一个已经存在的成员名(类似任选项b)。
+    l：暂未使用
+    N：与count参数一起使用，在库中有多个相同的文件名时指定提取或输出的个数。
+    o：当提取成员时，保留成员的原始数据。如果不指定该任选项，则提取出的模块的时间将标为提取出的时间。
+    P：进行文件名匹配时使用全路径名。ar在创建库时不能使用全路径名（这样的库文件不符合POSIX标准），但是有些工具可以。
+    s：写入一个目标文件索引到库中，或者更新一个存在的目标文件索引。甚至对于没有任何变化的库也作该动作。对一个库做ar s等同于对该库做ranlib。
+    S：不创建目标文件索引，这在创建较大的库时能加快时间。
+    u：一般说来，命令ar r...插入所有列出的文件到库中，如果你只想插入列出文件中那些比库中同名文件新的文件，就可以使用该任选项。该任选项只用于r操作选项。
+    v：该选项用来显示执行操作选项的附加信息。
+    V：显示ar的版本。
+
+
+31)变量除了可以直接设定来修改原本的内容之外有没有办法透过简单的动作来将变量的内容进行微调呢？比如变量内容的删除、取代与替换。是可以的：
+假设：va=/aaa:/b:/c:/d:/e
+删除：
+echo $va显示的是 /aaa:/b:/c:/d:/e
+echo ${va#/*a:}显示的是/b:/c:/d:/e，不过此时va中存放的仍然是 /aaa:/b:/c:/d:/e
+只须va=`echo ${va#/*a:}`即实现了删除。
+echo ${va##/*:}显示的是/e，此时va中存放的仍然是 /aaa:/b:/c:/d:/e
+只须va=`echo ${va##/*:}`即实现了删除。
+#表示符合取代文字的最短的那一个。
+##表示符合取代文字的最长的那一个。
+以上两个表示的都是从前面开始删除变量内容，类似的有%和%%表示从后面开始删除变量内容。用法相同。
+取代：
+假设：va2=sbinaaaa
+echo ${va2/sbin/SBIN}显示的是SBINaaaa，不过此时va2中存放的仍然是 sbinaaaa
+va2=`echo ${va2/sbin/SBIN}`即实现了取代。
+${变量/旧字符串/新字符串}若变量内容符合旧字符串，则第一个旧字符串会被新字符串取代
+${变量//旧字符串/新字符串}若变量内容符合旧字符串，则全部的旧字符串会被新字符串取代
+更多内容见鸟哥378-380页。
+
+32)ftp关闭当前对话是close，退出是bye
+telnet关闭当前环境是exit，退出是quit
+
+33）mknod命令：
+现在硬件文件名已经都可以被系统自动实时产生了，基本上不需要我们手动建立装置档案。
+mknod 装置文件名 [bcp][Major][Minor]
+装置种类：
+b：设置装置名称成为一个周边储存设备档案，例如硬盘等
+c：设定装置名称成为一个周边输入设备档案，例如鼠标、键盘等
+p：设定装置名称成为一个FIFO档案
+Major：主要装置代码
+Minor：将要装置代码
+例：mknod /dev/hdc b 22 10
+mknod /tmpp/testpipe p   #注意！这个档案可不是一般档案，不可以随便就放在这里。测试完毕之后请删除该档案！
+FIFO是一个缓冲区
+FIFO是管道文件，分为无名管道和有名管道。
+       无名管道例如：ls-l | grep name  使用管道可将一个命令的输出作为另一个命令的输入。命令执行时，无名管道对于管道两端的进程而言，就是一个文件，但它不是普通的文件，它不属于某种文件系统，而是单独构成一种文件系统，并且只存在于内存中。无名管道是临时的，执行完成后会自动消失。由于没有名字，无名管道只能用于亲缘关系的进程间通信.
+       有名管道即FIFO，在文件系统中有自己文件名路径名，这样即使两个不相关（没有亲缘关系）的进程，只要可以访问该路径，就能够彼此通过创建FIFO相互（非临时的）通信。有名管道的名字存在于文件系统中，但内容还是存放在内存中。
+
+34)以.tar.gz为扩展名的是一种压缩文件。
+是tarball文件，所谓的 tarball 文件，其实就是将软件的所有原始码档案先以 tar 打包，然后再以压缩技术来压缩，通常最常见的就是以 gzip 来压缩了。因为利用了 tar 与 gzip 的功能，所以 tarball 档案一般的附档名就会写成 .tar.gz 或者是简写为 .tgz
+安装软件:举个例子 linux tar.gz安装方法
+详细安装步骤
+linux下解压tar.gz文件
+下面所所有操作，后面有所有步骤说明
+[yonghu@localhost ~]# su root
+[root@localhost ~]# cd /home/new/Desktop
+[root@localhost Desktop]# tar -xzvf fcitx-3.4.2.tar.gz
+[root@localhost Desktop]# cd /home/new/Desktop/fcitx-3.4.2
+[root@localhost fcitx-3.4.2]#./configure --prefix=/opt/fictx
+这之前应该还有一步：
+./autogen.sh(检测你是否拥有安装fcitx的依赖关系，并会提示你一些你想要的方式，比如安装在系统应该用什么命令，安装在当前用户又应该用什么命令)
+[root@localhost fcitx-3.4.2]#make
+[root@localhost fcitx-3.4.2]#make install
+各步骤详解
+[root@localhost fcitx-3.4.2]#./configure --prefix=/opt/fictx
+//(配置，把文件存放在/opt/fictx下，删除时，卸载软件时，只要删除这个文件就行了)这一步实质是在产生makefile文件
+[root@localhost fcitx-3.4.2]#make (编译)
+[root@localhost fcitx-3.4.2]#make install （安装）
+
+35)su root
+yum install "@Chinese Support"
+exit
+注销再登陆
+
+系统装中文语言支持,输入yum install fonts-chinese
+
+36)Yum（全称为 Yellow dog Updater, Modified）是一个在Fedora和RedHat以及SUSE、CentOS中的Shell前端软件包管理器。基于RPM包管理，能够从指定的服务器自动下载RPM包并且安装，可以自动处理依赖性关系，并且一次安装所有依赖的软件包，无须繁琐地一次次下载、安装。常用命令行命令
+安装软件(以foo-x.x.x.rpm为例）：yum install foo-x.x.x.rpm
+yum常用命令
+删除软件：yum remove foo-x.x.x.rpm或者yum erase foo-x.x.x.rpm
+升级软件：yum upgrade foo或者yum update foo
+查询信息：yum info foo
+搜索软件（以包含foo字段为例）：yum search foo
+显示软件包依赖关系：yum deplist foo
+37)
+fork执行一次返回两个值
+linux下一个进程在内存里有三部分的数据，就是代码段、堆栈段和数据段
+代码段就是存放了程序代码的数据，假如机器中有数个进程运行相同的一个程序，那么它们就可以使用相同的代码段。
+堆栈段存放的就是子程序的返回地址、子程序的参数以及程序的局部变量。
+而数据段则存放程序的全局变量，常数以及动态数据分配的数据空间。
+系统如果同时运行数个相同的程序，它们之间就不能使用同一个堆栈段和数据段。
+在传统的Unix环境下，有两个基本的操作用于创建和修改进程：函数fork( )用来创建一个新的进程，该进程几乎是当前进程的一个完全拷贝；函数族exec( )用来启动另外的进程以取代当前运行的进程。Linux的进程控制和传统的Unix进程控制基本一致，只在一些细节的地方有些区别，例如在Linux系统中调用vfork和fork完全相同，而在有些版本的Unix系统中，vfork调用有不同的功能。由于这些差别几乎不影响我们大多数的编程，在这里我们不予考虑。
+int main(int argc,char **argv)
+{   
+	int i;   
+	if ( fork() == 0 )/*子进程和父进程从这句就开始同时运行*/
+	{
+		/* 子进程程序 */   
+		for ( i = 1; i <10; i ++ ) printf("This is child process\n");   
+	}   
+	else
+	 {   
+		/* 父进程程序*/   
+		for ( i = 1; i <10; i ++ ) printf("This is process process\n");   
+	}   
+} 
+那么调用这个fork函数时发生了什么呢？fork函数启动一个新的进程，前面我们说过，这个进程几乎是当前进程的一个拷贝：子进程和父进程使用相同的代码段；子进程复制父进程的堆栈段和数据段。这样，父进程的所有数据都可以留给子进程，但是，子进程一旦开始运行，虽然它继承了父进程的一切数据，但实际上数据却已经分开，相互之间不再有影响了，也就是说，它们之间不再共享任何数据了。它们再要交互信息时，只有通过进程间通信来实现，这将是我们下面的内容。既然它们如此相象，系统如何来区分它们呢？这是由函数的返回值来决定的。对于父进程，fork函数返回了子程序的进程号，而对于子程序，fork函数则返回零。在操作系统中，我们用ps函数就可以看到不同的进程号，对父进程而言，它的进程号是由比它更低层的系统调用赋予的，而对于子进程而言，它的进程号即是fork函数对父进程的返回值。在程序设计中，父进程和子进程都要调用函数fork（）下面的代码，而我们就是利用fork（）函数对父子进程的不同返回值用if...else...语句来实现让父子进程完成不同的功能，正如我们上面举的例子一样。我们看到，上面例子执行时两条信息是交互无规则的打印出来的，这是父子进程独立执行的结果，虽然我们的代码似乎和串行的代码没有什么区别。
+　　 读者也许会问，如果一个大程序在运行中，它的数据段和堆栈都很大，一次fork就要复制一次，那么fork的系统开销不是很大吗？其实UNIX自有其解决的办法，大家知道，一般CPU都是以"页"为单位来分配内存空间的，每一个页都是实际物理内存的一个映像，象INTEL的CPU，其一页在通常情况下是4086字节大小，而无论是数据段还是堆栈段都是由许多"页"构成的，fork函数复制这两个段，只是"逻辑"上的，并非"物理"上的，也就是说，实际执行fork时，物理空间上两个进程的数据段和堆栈段都还是共享着的，当有一个进程写了某个数据时，这时两个进程之间的数据才有了区别，系统就将有区别的"页"从物理上也分开。系统在空间上的开销就可以达到最小。
+　　 下面演示一个足以"搞死"Linux的小程序，其源代码非常简单：
+void main()
+　　 {   
+　　　　 for( ; ; ) fork();   
+　　 }
+这个程序什么也不做，就是死循环地fork，其结果是程序不断产生进程，而这些进程又不断产生新的进程，很快，系统的进程就满了，系统就被这么多不断产生的进程"撑死了"。当然只要系统管理员预先给每个用户设置可运行的最大进程数，这个恶意的程序就完成不了企图了。
+exec( )函数族
+　　 下面我们来看看一个进程如何来启动另一个程序的执行。在Linux中要使用exec函数族。系统调用execve（）对当前进程进行替换，替换者为一个指定的程序，其参数包括文件名（filename）、参数列表（argv）以及环境变量（envp）。exec函数族当然不止一个，但它们大致相同，在Linux中，它们分别是：execl，execlp，execle，execv，execve和execvp，下面我只以execlp为例，其它函数究竟与execlp有何区别，请通过manexec命令来了解它们的具体情况。
+　　 一个进程一旦调用exec类函数，它本身就"死亡"了，系统把代码段替换成新的程序的代码，废弃原有的数据段和堆栈段，并为新程序分配新的数据段与堆栈段，唯一留下的，就是进程号，也就是说，对系统而言，还是同一个进程，不过已经是另一个程序了。（不过exec类函数中有的还允许继承环境变量之类的信息。）
+那么如果我的程序想启动另一程序的执行但自己仍想继续运行的话，怎么办呢？那就是结合fork与exec的使用。下面一段代码显示如何启动运行其它程序：
+#include<stdio.h>
+#include<stdlib.h>
+#include<iostream>
+#include<string.h>
+#include<unistd.h>
+#include<errno.h>
+#include<sys/wait.h>
+using namespace std;
+
+char command[256];
+int main(int argc,char **argv)
+{   
+	int rtn;	/*子进程的返回数值*/
+	/*从终端读取命令*/
+	printf(">");
+	fgets(command, 256, stdin);
+	command[strlen(command)-1] = 0;
+	if(fork() == 0)
+	{
+	/*子进程执行此命令*/
+	execlp(command, command, NULL);
+	/*如果exec函数返回，表明没有正常执行命令，打印错误信息*/
+	perror(command);
+	exit(errno);
+	}
+	else
+	{
+		/*父进程等待子进程结束，并打印子进程的返回值*/
+		wait(&rtn);
+		printf("child process return %d\n",rtn);
+	}
+}
+在这一节里，我们还要讲讲system（）和popen（）函数。system（）函数先调用fork（），然后再调用exec（）来执行用户的登录shell，通过它来查找可执行文件的命令并分析参数，最后它么使用wait（）函数族之一来等待子进程的结束。函数popen（）和函数system（）相似，不同的是它调用pipe（）函数创建一个管道，通过它来完成程序的标准输入和标准输出。这两个函数是为那些不太勤快的程序员设计的，在效率和安全方面都有相当的缺陷，在可能的情况下，应该尽量避免。
+首先，进程间通信至少可以通过传送打开文件来实现，不同的进程通过一个或多个文件来传递信息，事实上，在很多应用系统里，都使用了这种方法。但一般说来，进程间通信（IPC：InterProcess Communication）不包括这种似乎比较低级的通信方法。Unix系统中实现进程间通信的方法很多，而且不幸的是，极少方法能在所有的Unix系统中进行移植（唯一一种是半双工的管道，这也是最原始的一种通信方式）。而Linux作为一种新兴的操作系统，几乎支持所有的Unix下常用的进程间通信方法：管道、消息队列、共享内存、信号量、套接口等等。下面我们将逐一介绍。
+管道
+　　 管道是进程间通信中最古老的方式，它包括无名管道和有名管道两种，前者用于父进程和子进程间的通信，后者用于运行于同一台机器上的任意两个进程间的通信。
+　　 无名管道由pipe（）函数创建：
+　　 #include <unistd.h>
+　　 int pipe(int filedis[2])；
+　　 参数filedis返回两个文件描述符：filedes[0]为读而打开，filedes[1]为写而打开。filedes[1]的输出是filedes[0]的输入。下面的例子示范了如何在父进程和子进程间实现通信。
+#include<stdio.h>
+#include<unistd.h>
+#include<stdlib.h>
+#include<iostream>
+#include<string.h>
+#include<string>
+using namespace std;
+
+int main(int argc,char **argv)
+{   
+    int file_descriptors[2];   
+    /*定义子进程号 */
+    pid_t pid;   
+    char buf[256];   
+    int returned_count;   
+    /*创建无名管道*/   
+    pipe(file_descriptors);   
+    /*创建子进程*/   
+    if((pid = fork()) == -1)
+	{   
+	    printf("Error in fork\n");   
+	    exit(1);   
+    }   
+    /*执行子进程*/   
+    if(pid == 0)
+	{   
+    	printf("in the spawned (child) process...\n");   
+    	/*子进程向父进程写数据，关闭管道的读端*/   
+    	close(file_descriptors[0]);
+    	write(file_descriptors[1], "test data", strlen("test data"));
+    	exit(0);   
+    }
+	else
+	{   
+	    /*执行父进程*/   
+	    printf("in the spawning (parent) process...\n");   
+	    /*父进程从管道读取子进程写的数据，关闭管道的写端*/   
+	    close(file_descriptors[1]);   
+	    returned_count = read(file_descriptors[0], buf, sizeof(buf));   
+	    printf("%d bytes of data received from spawned process: %s\n",returned_count, buf);   
+    }   
+}   
+
+
+　　 在Linux系统下，有名管道可由两种方式创建：命令行方式mknod系统调用和函数mkfifo。下面的两种途径都在当前目录下生成了一个名为myfifo的有名管道：
+　　　　 方式一：mkfifo("myfifo","rw");
+　　　　 方式二：mknod myfifo p
+　　 生成了有名管道后，就可以使用一般的文件I/O函数如open、close、read、write等来对它进行操作。下面即是一个简单的例子，假设我们已经创建了一个名为myfifo的有名管道。
+
+/* 进程一：读有名管道*/   
+#include <stdio.h>   
+#include <unistd.h>   
+void main()
+{   
+    FILE * in_file;   
+    int count = 1;   
+    char buf[80];   
+    in_file = fopen("mypipe", "r");   
+    if (in_file == NULL)
+	{   
+	    printf("Error in fdopen./n");   
+	    exit(1);   
+    }   
+    while ((count = fread(buf, 1, 80, in_file)) > 0)   
+    printf("received from pipe: %s/n", buf);   
+    fclose(in_file);   
+}   
+
+/* 进程二：写有名管道*/   
+#include <stdio.h>   
+#include <unistd.h>   
+void main()
+{   
+    FILE * out_file;   
+    int count = 1;   
+    char buf[80];   
+    out_file = fopen("mypipe", "w");   
+    if (out_file == NULL)
+	{   
+	    printf("Error opening pipe.");   
+	    exit(1);   
+    }   
+    sprintf(buf,"this is test data for the named pipe example/n");   
+    fwrite(buf, 1, 80, out_file);   
+    fclose(out_file);   
+} 
+2.3.2 消息队列
+　　 消息队列用于运行于同一台机器上的进程间通信，它和管道很相似，事实上，它是一种正逐渐被淘汰的通信方式，我们可以用流管道或者套接口的方式来取代它，所以，我们对此方式也不再解释，也建议读者忽略这种方式。
+
+　　 2.3.3 共享内存
+　　 共享内存是运行在同一台机器上的进程间通信最快的方式，因为数据不需要在不同的进程间复制。通常由一个进程创建一块共享内存区，其余进程对这块内存区进行读写。得到共享内存有两种方式：映射/dev/mem设备和内存映像文件。前一种方式不给系统带来额外的开销，但在现实中并不常用，因为它控制存取的将是实际的物理内存，在Linux系统下，这只有通过限制Linux系统存取的内存才可以做到，这当然不太实际。常用的方式是通过shmXXX函数族来实现利用共享内存进行存储的。
+　　 首先要用的函数是shmget，它获得一个共享存储标识符。
+　　　　 #include <sys/types.h>
+　　　　 #include <sys/ipc.h>
+　　　　 #include <sys/shm.h>
+　　　　　 int shmget(key_t key, int size, int flag);
+　　 这个函数有点类似大家熟悉的malloc函数，系统按照请求分配size大小的内存用作共享内存。Linux系统内核中每个IPC结构都有的一个非负整数的标识符，这样对一个消息队列发送消息时只要引用标识符就可以了。这个标识符是内核由IPC结构的关键字得到的，这个关键字，就是上面第一个函数的key。数据类型key_t是在头文件sys/types.h中定义的，它是一个长整形的数据。在我们后面的章节中，还会碰到这个关键字。
+　　 当共享内存创建后，其余进程可以调用shmat（）将其连接到自身的地址空间中。
+　　 void *shmat(int shmid, void *addr, int flag);
+　　 shmid为shmget函数返回的共享存储标识符，addr和flag参数决定了以什么方式来确定连接的地址，函数的返回值即是该进程数据段所连接的实际地址，进程可以对此进程进行读写操作。
+　　 使用共享存储来实现进程间通信的注意点是对数据存取的同步，必须确保当一个进程去读取数据时，它所想要的数据已经写好了。通常，信号量被要来实现对共享存储数据存取的同步，另外，可以通过使用shmctl函数设置共享存储内存的某些标志位如SHM_LOCK、SHM_UNLOCK等来实现。
+
+　　 2.3.4 信号量
+　　 信号量又称为信号灯，它是用来协调不同进程间的数据对象的，而最主要的应用是前一节的共享内存方式的进程间通信。本质上，信号量是一个计数器，它用来记录对某个资源（如共享内存）的存取状况。一般说来，为了获得共享资源，进程需要执行下列操作：
+　　 （1） 测试控制该资源的信号量。
+　　 （2） 若此信号量的值为正，则允许进行使用该资源。进程将进号量减1。
+　　 （3） 若此信号量为0，则该资源目前不可用，进程进入睡眠状态，直至信号量值大于0，进程被唤醒，转入步骤（1）。
+　　 （4） 当进程不再使用一个信号量控制的资源时，信号量值加1。如果此时有进程正在睡眠等待此信号量，则唤醒此进程。
+　　 维护信号量状态的是Linux内核操作系统而不是用户进程。我们可以从头文件/usr/src/linux/include　/linux　/sem.h中看到内核用来维护信号量状态的各个结构的定义。信号量是一个数据集合，用户可以单独使用这一集合的每个元素。要调用的第一个函数是semget，用以获得一个信号量ID。
+
+    #include <sys/types.h>   
+    　　 #include <sys/ipc.h>   
+    　　 #include <sys/sem.h>   
+    　　 int semget(key_t key, int nsems, int flag);   
+
+
+　　 key是前面讲过的IPC结构的关键字，它将来决定是创建新的信号量集合，还是引用一个现有的信号量集合。nsems是该集合中的信号量数。如果是创建新集合（一般在服务器中），则必须指定nsems；如果是引用一个现有的信号量集合（一般在客户机中）则将nsems指定为0。
+　　 semctl函数用来对信号量进行操作。
+　　 int semctl(int semid, int semnum, int cmd, union semun arg);
+　　 不同的操作是通过cmd参数来实现的，在头文件sem.h中定义了7种不同的操作，实际编程时可以参照使用。
+　　 semop函数自动执行信号量集合上的操作数组。
+　　 int semop(int semid, struct sembuf semoparray[], size_t nops);
+　　 semoparray是一个指针，它指向一个信号量操作数组。nops规定该数组中操作的数量。
+　　 下面，我们看一个具体的例子，它创建一个特定的IPC结构的关键字和一个信号量，建立此信号量的索引，修改索引指向的信号量的值，最后我们清除信号量。在下面的代码中，函数ftok生成我们上文所说的唯一的IPC关键字。
+
+    #include <stdio.h>   
+    #include <sys/types.h>   
+    #include <sys/sem.h>   
+    #include <sys/ipc.h>   
+    void main() {   
+    key_t unique_key; /* 定义一个IPC关键字*/   
+    int id;   
+    struct sembuf lock_it;   
+    union semun options;   
+    int i;   
+      
+    unique_key = ftok(".", 'a'); /* 生成关键字，字符'a'是一个随机种子*/   
+    /* 创建一个新的信号量集合*/   
+    id = semget(unique_key, 1, IPC_CREAT | IPC_EXCL | 0666);   
+    printf("semaphore id=%d/n", id);   
+    options.val = 1; /*设置变量值*/   
+    semctl(id, 0, SETVAL, options); /*设置索引0的信号量*/   
+      
+    /*打印出信号量的值*/   
+    i = semctl(id, 0, GETVAL, 0);   
+    printf("value of semaphore at index 0 is %d/n", i);   
+      
+    /*下面重新设置信号量*/   
+    lock_it.sem_num = 0; /*设置哪个信号量*/   
+    lock_it.sem_op = -1; /*定义操作*/   
+    lock_it.sem_flg = IPC_NOWAIT; /*操作方式*/   
+    if (semop(id, &lock_it, 1) == -1) {   
+    printf("can not lock semaphore./n");   
+    exit(1);   
+    }   
+      
+    i = semctl(id, 0, GETVAL, 0);   
+    printf("value of semaphore at index 0 is %d/n", i);   
+      
+    /*清除信号量*/   
+    semctl(id, 0, IPC_RMID, 0);   
+    }   
+
+　　 2.3.5 套接口
+　　 套接口（socket）编程是实现Linux系统和其他大多数操作系统中进程间通信的主要方式之一。我们熟知的WWW服务、FTP服务、TELNET服务等都是基于套接口编程来实现的。除了在异地的计算机进程间以外，套接口同样适用于本地同一台计算机内部的进程间通信。关于套接口的经典教材同样是Richard Stevens编著的《Unix网络编程：联网的API和套接字》，清华大学出版社出版了该书的影印版。它同样是Linux程序员的必备书籍之一。
+　　 关于这一部分的内容，可以参照本文作者的另一篇文章《设计自己的网络蚂蚁》，那里由常用的几个套接口函数的介绍和示例程序。这一部分或许是Linux进程间通信编程中最须关注和最吸引人的一部分，毕竟，Internet 正在我们身边以不可思议的速度发展着，如果一个程序员在设计编写他下一个程序的时候，根本没有考虑到网络，考虑到Internet，那么，可以说，他的设计很难成功。
+
+3 Linux的进程和Win32的进程/线程比较
+　　 熟悉WIN32编程的人一定知道，WIN32的进程管理方式与Linux上有着很大区别，在UNIX里，只有进程的概念，但在WIN32里却还有一个"线程"的概念，那么Linux和WIN32在这里究竟有着什么区别呢？
+　　 WIN32里的进程/线程是继承自OS/2的。在WIN32里，"进程"是指一个程序，而"线程"是一个"进程"里的一个执行"线索"。从核心上讲，WIN32的多进程与Linux并无多大的区别，在WIN32里的线程才相当于Linux的进程，是一个实际正在执行的代码。但是，WIN32里同一个进程里各个线程之间是共享数据段的。这才是与Linux的进程最大的不同。
+　　 下面这段程序显示了WIN32下一个进程如何启动一个线程。
+
+int g;   
+DWORD WINAPI ChildProcess( LPVOID lpParameter )
+{   
+    int i;   
+    for ( i = 1; i <1000; i ++) 
+	{   
+	    g ++;   
+	    printf( "This is Child Thread: %d/n", g );   
+    }   
+    ExitThread( 0 );   
+};   
+      
+void main()   
+{   
+    int threadID;   
+    int i;   
+    g = 0;   
+    CreateThread( NULL, 0, ChildProcess, NULL, 0, &threadID );   
+    for ( i = 1; i <1000; i ++)
+	{   
+	    g ++;   
+	    printf( "This is Parent Thread: %d/n", g );   
+    }   
+}   
+
+　　 在WIN32下，使用CreateThread函数创建线程，与Linux下创建进程不同，WIN32线程不是从创建处开始运行的，而是由CreateThread指定一个函数，线程就从那个函数处开始运行。此程序同前面的UNIX程序一样，由两个线程各打印1000条信息。threadID是子线程的线程号，另外，全局变量g是子线程与父线程共享的，这就是与Linux最大的不同之处。大家可以看出，WIN32的进程/线程要比Linux复杂，在Linux要实现类似WIN32的线程并不难，只要fork以后，让子进程调用ThreadProc函数，并且为全局变量开设共享数据区就行了，但在WIN32下就无法实现类似fork的功能了。所以现在WIN32下的C语言编译器所提供的库函数虽然已经能兼容大多数Linux/UNIX的库函数，但却仍无法实现fork。
+　　 对于多任务系统，共享数据区是必要的，但也是一个容易引起混乱的问题，在WIN32下，一个程序员很容易忘记线程之间的数据是共享的这一情况，一个线程修改过一个变量后，另一个线程却又修改了它，结果引起程序出问题。但在Linux下，由于变量本来并不共享，而由程序员来显式地指定要共享的数据，使程序变得更清晰与安全。
+至于WIN32的"进程"概念，其含义则是"应用程序"，也就是相当于UNIX下的exec了。
+　　 Linux也有自己的多线程函数pthread，它既不同于Linux的进程，也不同于WIN32下的进程，关于pthread的介绍和如何在Linux环境下编写多线程程序我们将在另一篇文章《Linux下的多线程编程》中讲述。
+
+Linux下的多线程编程（转载）
+1 引言
+　　线程（thread）技术早在60年代就被提出，但真正应用多线程到操作系统中去，是在80年代中期，solaris是这方面的佼佼者。传统的Unix也支持线程的概念，但是在一个进程（process）中只允许有一个线程，这样多线程就意味着多进程。现在，多线程技术已经被许多操作系统所支持，包括Windows/NT，当然，也包括Linux。
+　　为什么有了进程的概念后，还要再引入线程呢？使用多线程到底有哪些好处？什么的系统应该选用多线程？我们首先必须回答这些问题。
+　　使用多线程的理由之一是和进程相比，它是一种非常"节俭"的多任务操作方式。我们知道，在Linux系统下，启动一个新的进程必须分配给它独立的地址空间，建立众多的数据表来维护它的代码段、堆栈段和数据段，这是一种"昂贵"的多任务工作方式。而运行于一个进程中的多个线程，它们彼此之间使用相同的地址空间，共享大部分数据，启动一个线程所花费的空间远远小于启动一个进程所花费的空间，而且，线程间彼此切换所需的时间也远远小于进程间切换所需要的时间。
+　　使用多线程的理由之二是线程间方便的通信机制。对不同进程来说，它们具有独立的数据空间，要进行数据的传递只能通过通信的方式进行，这种方式不仅费时，而且很不方便。线程则不然，由于同一进程下的线程之间共享数据空间，所以一个线程的数据可以直接为其它线程所用，这不仅快捷，而且方便。当然，数据的共享也带来其他一些问题，有的变量不能同时被两个线程所修改，有的子程序中声明为static的数据更有可能给多线程程序带来灾难性的打击，这些正是编写多线程程序时最需要注意的地方。
+　　除了以上所说的优点外，不和进程比较，多线程程序作为一种多任务、并发的工作方式，当然有以下的优点：
+　　1) 提高应用程序响应。这对图形界面的程序尤其有意义，当一个操作耗时很长时，整个系统都会等待这个操作，此时程序不会响应键盘、鼠标、菜单的操作，而使用多线程技术，将耗时长的操作（time consuming）置于一个新的线程，可以避免这种尴尬的情况。
+　　2) 使多CPU系统更加有效。操作系统会保证当线程数不大于CPU数目时，不同的线程运行于不同的CPU上。
+　　3) 改善程序结构。一个既长又复杂的进程可以考虑分为多个线程，成为几个独立或半独立的运行部分，这样的程序会利于理解和修改。
+　　下面我们先来尝试编写一个简单的多线程程序。
+
+2 简单的多线程编程
+　　Linux系统下的多线程遵循POSIX线程接口，称为pthread。编写Linux下的多线程程序，需要使用头文件pthread.h，连接时需要使用库libpthread.a。顺便说一下，Linux下pthread的实现是通过系统调用clone（）来实现的。clone（）是Linux所特有的系统调用，它的使用方式类似fork，关于clone（）的详细情况，有兴趣的读者可以去查看有关文档说明。下面我们展示一个最简单的多线程程序example1.c。
+
+/* example.c*/
+#include<pthread.h>
+#include<stdio.h>
+#include<stdlib.h>
+using namespace std;
+
+void *thread(void *)
+{
+	int i;
+	for(i=0;i<3;i++)
+	printf("This is a pthread.\n");
+}
+
+int main(int argc,char **argv)
+{
+	pthread_t id;
+	int i,ret;
+	ret=pthread_create(&id,NULL,thread,NULL);
+	if(ret!=0)
+	{
+		printf ("Create pthread error!\n");
+		exit (1);
+	}
+	for(i=0;i<3;i++)
+	printf("This is the main process.\n");
+	pthread_join(id,NULL);
+	return (0);
+}
+
+我们编译此程序：
+gcc example1.c -lpthread -o example1
+运行example1，我们得到如下结果：
+This is the main process.
+This is a pthread.
+This is the main process.
+This is the main process.
+This is a pthread.
+This is a pthread.
+再次运行，我们可能得到如下结果：
+This is a pthread.
+This is the main process.
+This is a pthread.
+This is the main process.
+This is a pthread.
+This is the main process.
+
+　　前后两次结果不一样，这是两个线程争夺CPU资源的结果。上面的示例中，我们使用到了两个函数，　　pthread_create和pthread_join，并声明了一个pthread_t型的变量。
+　　pthread_t在头文件/usr/include/bits/pthreadtypes.h中定义：
+　　typedef unsigned long int pthread_t;
+　　它是一个线程的标识符。函数pthread_create用来创建一个线程，它的原型为：
+　　extern int pthread_create __P ((pthread_t *__thread, __const pthread_attr_t *__attr,
+　　void *(*__start_routine) (void *), void *__arg));
+　　第一个参数为指向线程标识符的指针，第二个参数用来设置线程属性，第三个参数是线程运行函数的起始地址，最后一个参数是运行函数的参数。这里，我们的函数thread不需要参数，所以最后一个参数设为空指针。第二个参数我们也设为空指针，这样将生成默认属性的线程。对线程属性的设定和修改我们将在下一节阐述。当创建线程成功时，函数返回0，若不为0则说明创建线程失败，常见的错误返回代码为EAGAIN和EINVAL。前者表示系统限制创建新的线程，例如线程数目过多了；后者表示第二个参数代表的线程属性值非法。创建线程成功后，新创建的线程则运行参数三和参数四确定的函数，原来的线程则继续运行下一行代码。
+　　函数pthread_join用来等待一个线程的结束。函数原型为：
+　　extern int pthread_join __P ((pthread_t __th, void **__thread_return));
+　　第一个参数为被等待的线程标识符，第二个参数为一个用户定义的指针，它可以用来存储被等待线程的返回值。这个函数是一个线程阻塞的函数，调用它的函数将一直等待到被等待的线程结束为止，当函数返回时，被等待线程的资源被收回。一个线程的结束有两种途径，一种是象我们上面的例子一样，函数结束了，调用它的线程也就结束了；另一种方式是通过函数pthread_exit来实现。它的函数原型为：
+　　extern void pthread_exit __P ((void *__retval)) __attribute__ ((__noreturn__));
+　　唯一的参数是函数的返回代码，只要pthread_join中的第二个参数thread_return不是NULL，这个值将被传递给thread_return。最后要说明的是，一个线程不能被多个线程等待，否则第一个接收到信号的线程成功返回，其余调用pthread_join的线程则返回错误代码ESRCH。
+　　在这一节里，我们编写了一个最简单的线程，并掌握了最常用的三个函数pthread_create，pthread_join和pthread_exit。下面，我们来了解线程的一些常用属性以及如何设置这些属性。
+
+3 修改线程的属性
+　　在上一节的例子里，我们用pthread_create函数创建了一个线程，在这个线程中，我们使用了默认参数，即将该函数的第二个参数设为NULL。的确，对大多数程序来说，使用默认属性就够了，但我们还是有必要来了解一下线程的有关属性。
+　　属性结构为pthread_attr_t，它同样在头文件/usr/include/pthread.h中定义，喜欢追根问底的人可以自己去查看。属性值不能直接设置，须使用相关函数进行操作，初始化的函数为pthread_attr_init，这个函数必须在pthread_create函数之前调用。属性对象主要包括是否绑定、是否分离、堆栈地址、堆栈大小、优先级。默认的属性为非绑定、非分离、缺省1M的堆栈、与父进程同样级别的优先级。
+　　关于线程的绑定，牵涉到另外一个概念：轻进程（LWP：Light Weight Process）。轻进程可以理解为内核线程，它位于用户层和系统层之间。系统对线程资源的分配、对线程的控制是通过轻进程来实现的，一个轻进程可以控制一个或多个线程。默认状况下，启动多少轻进程、哪些轻进程来控制哪些线程是由系统来控制的，这种状况即称为非绑定的。绑定状况下，则顾名思义，即某个线程固定的"绑"在一个轻进程之上。被绑定的线程具有较高的响应速度，这是因为CPU时间片的调度是面向轻进程的，绑定的线程可以保证在需要的时候它总有一个轻进程可用。通过设置被绑定的轻进程的优先级和调度级可以使得绑定的线程满足诸如实时反应之类的要求。
+　　设置线程绑定状态的函数为pthread_attr_setscope，它有两个参数，第一个是指向属性结构的指针，第二个是绑定类型，它有两个取值：PTHREAD_SCOPE_SYSTEM（绑定的）和PTHREAD_SCOPE_PROCESS（非绑定的）。下面的代码即创建了一个绑定的线程。
+#include <pthread.h>
+pthread_attr_t attr;
+pthread_t tid;
+
+/*初始化属性值，均设为默认值*/
+pthread_attr_init(&attr);
+pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+
+pthread_create(&tid, &attr, (void *) my_function, NULL);
+
+　　线程的分离状态决定一个线程以什么样的方式来终止自己。在上面的例子中，我们采用了线程的默认属性，即为非分离状态，这种情况下，原有的线程等待创建的线程结束。只有当pthread_join（）函数返回时，创建的线程才算终止，才能释放自己占用的系统资源。而分离线程不是这样子的，它没有被其他的线程所等待，自己运行结束了，线程也就终止了，马上释放系统资源。程序员应该根据自己的需要，选择适当的分离状态。设置线程分离状态的函数为pthread_attr_setdetachstate（pthread_attr_t *attr, int detachstate）。第二个参数可选为PTHREAD_CREATE_DETACHED（分离线程）和 PTHREAD _CREATE_JOINABLE（非分离线程）。这里要注意的一点是，如果设置一个线程为分离线程，而这个线程运行又非常快，它很可能在pthread_create函数返回之前就终止了，它终止以后就可能将线程号和系统资源移交给其他的线程使用，这样调用pthread_create的线程就得到了错误的线程号。要避免这种情况可以采取一定的同步措施，最简单的方法之一是可以在被创建的线程里调用pthread_cond_timewait函数，让这个线程等待一会儿，留出足够的时间让函数pthread_create返回。设置一段等待时间，是在多线程编程里常用的方法。但是注意不要使用诸如wait（）之类的函数，它们是使整个进程睡眠，并不能解决线程同步的问题。
+　　另外一个可能常用的属性是线程的优先级，它存放在结构sched_param中。用函数pthread_attr_getschedparam和函数pthread_attr_setschedparam进行存放，一般说来，我们总是先取优先级，对取得的值修改后再存放回去。下面即是一段简单的例子。
+#include <pthread.h>
+#include <sched.h>
+pthread_attr_t attr;
+pthread_t tid;
+sched_param param;
+int newprio=20;
+
+pthread_attr_init(&attr);
+pthread_attr_getschedparam(&attr, &param);
+param.sched_priority=newprio;
+pthread_attr_setschedparam(&attr, &param);
+pthread_create(&tid, &attr, (void *)myfunction, myarg);
+　　
+4 线程的数据处理
+　　和进程相比，线程的最大优点之一是数据的共享性，各个进程共享父进程处沿袭的数据段，可以方便的获得、修改数据。但这也给多线程编程带来了许多问题。我们必须当心有多个不同的进程访问相同的变量。许多函数是不可重入的，即同时不能运行一个函数的多个拷贝（除非使用不同的数据段）。在函数中声明的静态变量常常带来问题，函数的返回值也会有问题。因为如果返回的是函数内部静态声明的空间的地址，则在一个线程调用该函数得到地址后使用该地址指向的数据时，别的线程可能调用此函数并修改了这一段数据。在进程中共享的变量必须用关键字volatile来定义，这是为了防止编译器在优化时（如gcc中使用-OX参数）改变它们的使用方式。为了保护变量，我们必须使用信号量、互斥等方法来保证我们对变量的正确使用。下面，我们就逐步介绍处理线程数据时的有关知识。
+
+4.1 线程数据
+　　在单线程的程序里，有两种基本的数据：全局变量和局部变量。但在多线程程序里，还有第三种数据类型：线程数据（TSD: Thread-Specific Data）。它和全局变量很象，在线程内部，各个函数可以象使用全局变量一样调用它，但它对线程外部的其它线程是不可见的。这种数据的必要性是显而易见的。例如我们常见的变量errno，它返回标准的出错信息。它显然不能是一个局部变量，几乎每个函数都应该可以调用它；但它又不能是一个全局变量，否则在A线程里输出的很可能是B线程的出错信息。要实现诸如此类的变量，我们就必须使用线程数据。我们为每个线程数据创建一个键，它和这个键相关联，在各个线程里，都使用这个键来指代线程数据，但在不同的线程里，这个键代表的数据是不同的，在同一个线程里，它代表同样的数据内容。
+　　和线程数据相关的函数主要有4个：创建一个键；为一个键指定线程数据；从一个键读取线程数据；删除键。
+　　创建键的函数原型为：
+　　extern int pthread_key_create __P ((pthread_key_t *__key,
+　　void (*__destr_function) (void *)));
+　　第一个参数为指向一个键值的指针，第二个参数指明了一个destructor函数，如果这个参数不为空，那么当每个线程结束时，系统将调用这个函数来释放绑定在这个键上的内存块。这个函数常和函数pthread_once ((pthread_once_t*once_control, void (*initroutine) (void)))一起使用，为了让这个键只被创建一次。函数pthread_once声明一个初始化函数，第一次调用pthread_once时它执行这个函数，以后的调用将被它忽略。
+
+　　在下面的例子中，我们创建一个键，并将它和某个数据相关联。我们要定义一个函数createWindow，这个函数定义一个图形窗口（数据类型为Fl_Window *，这是图形界面开发工具FLTK中的数据类型）。由于各个线程都会调用这个函数，所以我们使用线程数据。
+/* 声明一个键*/
+pthread_key_t myWinKey;
+/* 函数 createWindow */
+void createWindow ( void ) {
+Fl_Window * win;
+static pthread_once_t once= PTHREAD_ONCE_INIT;
+/* 调用函数createMyKey，创建键*/
+pthread_once ( & once, createMyKey) ;
+/*win指向一个新建立的窗口*/
+win=new Fl_Window( 0, 0, 100, 100, "MyWindow");
+/* 对此窗口作一些可能的设置工作，如大小、位置、名称等*/
+setWindow(win);
+/* 将窗口指针值绑定在键myWinKey上*/
+pthread_setpecific ( myWinKey, win);
+}
+
+/* 函数 createMyKey，创建一个键，并指定了destructor */
+void createMyKey ( void ) {
+pthread_keycreate(&myWinKey, freeWinKey);
+}
+
+/* 函数 freeWinKey，释放空间*/
+void freeWinKey ( Fl_Window * win){
+delete win;
+}
+
+　　这样，在不同的线程中调用函数createMyWin，都可以得到在线程内部均可见的窗口变量，这个变量通过函数pthread_getspecific得到。在上面的例子中，我们已经使用了函数pthread_setspecific来将线程数据和一个键绑定在一起。这两个函数的原型如下：
+　　extern int pthread_setspecific __P ((pthread_key_t __key,__const void *__pointer));
+　　extern void *pthread_getspecific __P ((pthread_key_t __key));
+　　这两个函数的参数意义和使用方法是显而易见的。要注意的是，用pthread_setspecific为一个键指定新的线程数据时，必须自己释放原有的线程数据以回收空间。这个过程函数pthread_key_delete用来删除一个键，这个键占用的内存将被释放，但同样要注意的是，它只释放键占用的内存，并不释放该键关联的线程数据所占用的内存资源，而且它也不会触发函数pthread_key_create中定义的destructor函数。线程数据的释放必须在释放键之前完成。
+
+4.2 互斥锁
+　　互斥锁用来保证一段时间内只有一个线程在执行一段代码。必要性显而易见：假设各个线程向同一个文件顺序写入数据，最后得到的结果一定是灾难性的。
+　　我们先看下面一段代码。这是一个读/写程序，它们公用一个缓冲区，并且我们假定一个缓冲区只能保存一条信息。即缓冲区只有两个状态：有信息或没有信息。
+
+void reader_function ( void );
+void writer_function ( void );
+
+char buffer;
+int buffer_has_item=0;
+pthread_mutex_t mutex;
+struct timespec delay;
+void main ( void ){
+pthread_t reader;
+/* 定义延迟时间*/
+delay.tv_sec = 2;
+delay.tv_nec = 0;
+/* 用默认属性初始化一个互斥锁对象*/
+pthread_mutex_init (&mutex,NULL);
+pthread_create(&reader, pthread_attr_default, (void *)&reader_function), NULL);
+writer_function( );
+}
+
+void writer_function (void){
+while(1){
+/* 锁定互斥锁*/
+pthread_mutex_lock (&mutex);
+if (buffer_has_item==0){
+buffer=make_new_item( );
+buffer_has_item=1;
+}
+/* 打开互斥锁*/
+pthread_mutex_unlock(&mutex);
+pthread_delay_np(&delay);
+}
+}
+
+void reader_function(void){
+while(1){
+pthread_mutex_lock(&mutex);
+if(buffer_has_item==1){
+consume_item(buffer);
+buffer_has_item=0;
+}
+pthread_mutex_unlock(&mutex);
+pthread_delay_np(&delay);
+}
+}
+　　这里声明了互斥锁变量mutex，结构pthread_mutex_t为不公开的数据类型，其中包含一个系统分配的属性对象。函数pthread_mutex_init用来生成一个互斥锁。NULL参数表明使用默认属性。如果需要声明特定属性的互斥锁，须调用函数pthread_mutexattr_init。函数pthread_mutexattr_setpshared和函数pthread_mutexattr_settype用来设置互斥锁属性。前一个函数设置属性pshared，它有两个取值，PTHREAD_PROCESS_PRIVATE和PTHREAD_PROCESS_SHARED。前者用来不同进程中的线程同步，后者用于同步本进程的不同线程。在上面的例子中，我们使用的是默认属性PTHREAD_PROCESS_ PRIVATE。后者用来设置互斥锁类型，可选的类型有PTHREAD_MUTEX_NORMAL、PTHREAD_MUTEX_ERRORCHECK、PTHREAD_MUTEX_RECURSIVE和PTHREAD _MUTEX_DEFAULT。它们分别定义了不同的上所、解锁机制，一般情况下，选用最后一个默认属性。
+　　pthread_mutex_lock声明开始用互斥锁上锁，此后的代码直至调用pthread_mutex_unlock为止，均被上锁，即同一时间只能被一个线程调用执行。当一个线程执行到pthread_mutex_lock处时，如果该锁此时被另一个线程使用，那此线程被阻塞，即程序将等待到另一个线程释放此互斥锁。在上面的例子中，我们使用了pthread_delay_np函数，让线程睡眠一段时间，就是为了防止一个线程始终占据此函数。
+　　上面的例子非常简单，就不再介绍了，需要提出的是在使用互斥锁的过程中很有可能会出现死锁：两个线程试图同时占用两个资源，并按不同的次序锁定相应的互斥锁，例如两个线程都需要锁定互斥锁1和互斥锁2，a线程先锁定互斥锁1，b线程先锁定互斥锁2，这时就出现了死锁。此时我们可以使用函数pthread_mutex_trylock，它是函数pthread_mutex_lock的非阻塞版本，当它发现死锁不可避免时，它会返回相应的信息，程序员可以针对死锁做出相应的处理。另外不同的互斥锁类型对死锁的处理不一样，但最主要的还是要程序员自己在程序设计注意这一点。
+
+4.3 条件变量
+　　前一节中我们讲述了如何使用互斥锁来实现线程间数据的共享和通信，互斥锁一个明显的缺点是它只有两种状态：锁定和非锁定。而条件变量通过允许线程阻塞和等待另一个线程发送信号的方法弥补了互斥锁的不足，它常和互斥锁一起使用。使用时，条件变量被用来阻塞一个线程，当条件不满足时，线程往往解开相应的互斥锁并等待条件发生变化。一旦其它的某个线程改变了条件变量，它将通知相应的条件变量唤醒一个或多个正被此条件变量阻塞的线程。这些线程将重新锁定互斥锁并重新测试条件是否满足。一般说来，条件变量被用来进行线承间的同步。
+　　条件变量的结构为pthread_cond_t，函数pthread_cond_init（）被用来初始化一个条件变量。它的原型为：
+　　extern int pthread_cond_init __P ((pthread_cond_t *__cond,__const pthread_condattr_t *__cond_attr));
+　　其中cond是一个指向结构pthread_cond_t的指针，cond_attr是一个指向结构pthread_condattr_t的指针。结构pthread_condattr_t是条件变量的属性结构，和互斥锁一样我们可以用它来设置条件变量是进程内可用还是进程间可用，默认值是PTHREAD_ PROCESS_PRIVATE，即此条件变量被同一进程内的各个线程使用。注意初始化条件变量只有未被使用时才能重新初始化或被释放。释放一个条件变量的函数为pthread_cond_ destroy（pthread_cond_t cond）。　
+　　函数pthread_cond_wait（）使线程阻塞在一个条件变量上。它的函数原型为：
+　　extern int pthread_cond_wait __P ((pthread_cond_t *__cond,
+　　pthread_mutex_t *__mutex));
+　　线程解开mutex指向的锁并被条件变量cond阻塞。线程可以被函数pthread_cond_signal和函数pthread_cond_broadcast唤醒，但是要注意的是，条件变量只是起阻塞和唤醒线程的作用，具体的判断条件还需用户给出，例如一个变量是否为0等等，这一点我们从后面的例子中可以看到。线程被唤醒后，它将重新检查判断条件是否满足，如果还不满足，一般说来线程应该仍阻塞在这里，被等待被下一次唤醒。这个过程一般用while语句实现。
+　　另一个用来阻塞线程的函数是pthread_cond_timedwait（），它的原型为：
+　　extern int pthread_cond_timedwait __P ((pthread_cond_t *__cond,
+　　pthread_mutex_t *__mutex, __const struct timespec *__abstime));
+　　它比函数pthread_cond_wait（）多了一个时间参数，经历abstime段时间后，即使条件变量不满足，阻塞也被解除。
+　　函数pthread_cond_signal（）的原型为：
+　　extern int pthread_cond_signal __P ((pthread_cond_t *__cond));
+　　它用来释放被阻塞在条件变量cond上的一个线程。多个线程阻塞在此条件变量上时，哪一个线程被唤醒是由线程的调度策略所决定的。要注意的是，必须用保护条件变量的互斥锁来保护这个函数，否则条件满足信号又可能在测试条件和调用pthread_cond_wait函数之间被发出，从而造成无限制的等待。下面是使用函数pthread_cond_wait（）和函数pthread_cond_signal（）的一个简单的例子。
+
+pthread_mutex_t count_lock;
+pthread_cond_t count_nonzero;
+unsigned count;
+decrement_count　() {
+pthread_mutex_lock (&count_lock);
+while(count==0)
+pthread_cond_wait( &count_nonzero, &count_lock);
+count=count -1;
+pthread_mutex_unlock (&count_lock);
+}
+
+increment_count(){
+pthread_mutex_lock(&count_lock);
+if(count==0)
+pthread_cond_signal(&count_nonzero);
+count=count+1;
+pthread_mutex_unlock(&count_lock);
+}
+　　count值为0时，decrement函数在pthread_cond_wait处被阻塞，并打开互斥锁count_lock。此时，当调用到函数increment_count时，pthread_cond_signal（）函数改变条件变量，告知decrement_count（）停止阻塞。读者可以试着让两个线程分别运行这两个函数，看看会出现什么样的结果。
+　　函数pthread_cond_broadcast（pthread_cond_t *cond）用来唤醒所有被阻塞在条件变量cond上的线程。这些线程被唤醒后将再次竞争相应的互斥锁，所以必须小心使用这个函数。
+
+4.4 信号量
+　　信号量本质上是一个非负的整数计数器，它被用来控制对公共资源的访问。当公共资源增加时，调用函数sem_post（）增加信号量。只有当信号量值大于０时，才能使用公共资源，使用后，函数sem_wait（）减少信号量。函数sem_trywait（）和函数pthread_ mutex_trylock（）起同样的作用，它是函数sem_wait（）的非阻塞版本。下面我们逐个介绍和信号量有关的一些函数，它们都在头文件/usr/include/semaphore.h中定义。
+　　信号量的数据类型为结构sem_t，它本质上是一个长整型的数。函数sem_init（）用来初始化一个信号量。它的原型为：
+　　extern int sem_init __P ((sem_t *__sem, int __pshared, unsigned int __value));
+　　sem为指向信号量结构的一个指针；pshared不为０时此信号量在进程间共享，否则只能为当前进程的所有线程共享；value给出了信号量的初始值。
+　　函数sem_post( sem_t *sem )用来增加信号量的值。当有线程阻塞在这个信号量上时，调用这个函数会使其中的一个线程不在阻塞，选择机制同样是由线程的调度策略决定的。
+　　函数sem_wait( sem_t *sem )被用来阻塞当前线程直到信号量sem的值大于0，解除阻塞后将sem的值减一，表明公共资源经使用后减少。函数sem_trywait ( sem_t *sem )是函数sem_wait（）的非阻塞版本，它直接将信号量sem的值减一。
+　　函数sem_destroy(sem_t *sem)用来释放信号量sem。
+　　下面我们来看一个使用信号量的例子。在这个例子中，一共有4个线程，其中两个线程负责从文件读取数据到公共的缓冲区，另两个线程从缓冲区读取数据作不同的处理（加和乘运算）。
+/* File sem.c */
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#define MAXSTACK 100
+int stack[MAXSTACK][2];
+int size=0;
+sem_t sem;
+/* 从文件1.dat读取数据，每读一次，信号量加一*/
+void ReadData1(void){
+FILE *fp=fopen("1.dat","r");
+while(!feof(fp)){
+fscanf(fp,"%d %d",&stack[size][0],&stack[size][1]);
+sem_post(&sem);
+++size;
+}
+fclose(fp);
+}
+/*从文件2.dat读取数据*/
+void ReadData2(void){
+FILE *fp=fopen("2.dat","r");
+while(!feof(fp)){
+fscanf(fp,"%d %d",&stack[size][0],&stack[size][1]);
+sem_post(&sem);
+++size;
+}
+fclose(fp);
+}
+/*阻塞等待缓冲区有数据，读取数据后，释放空间，继续等待*/
+void HandleData1(void){
+while(1){
+sem_wait(&sem);
+printf("Plus:%d+%d=%d\n",stack[size][0],stack[size][1],
+stack[size][0]+stack[size][1]);
+--size;
+}
+}
+
+void HandleData2(void){
+while(1){
+sem_wait(&sem);
+printf("Multiply:%d*%d=%d\n",stack[size][0],stack[size][1],
+stack[size][0]*stack[size][1]);
+--size;
+}
+}
+int main(void){
+pthread_t t1,t2,t3,t4;
+sem_init(&sem,0,0);
+pthread_create(&t1,NULL,(void *)HandleData1,NULL);
+pthread_create(&t2,NULL,(void *)HandleData2,NULL);
+pthread_create(&t3,NULL,(void *)ReadData1,NULL);
+pthread_create(&t4,NULL,(void *)ReadData2,NULL);
+/* 防止程序过早退出，让它在此无限期等待*/
+pthread_join(t1,NULL);
+}
+
+　　在Linux下，我们用命令gcc -lpthread sem.c -o sem生成可执行文件sem。 我们事先编辑好数据文件1.dat和2.dat，假设它们的内容分别为1 2 3 4 5 6 7 8 9 10和 -1 -2 -3 -4 -5 -6 -7 -8 -9 -10 ，我们运行sem，得到如下的结果：
+Multiply:-1*-2=2
+Plus:-1+-2=-3
+Multiply:9*10=90
+Plus:-9+-10=-19
+Multiply:-7*-8=56
+Plus:-5+-6=-11
+Multiply:-3*-4=12
+Plus:9+10=19
+Plus:7+8=15
+Plus:5+6=11
+
+　　从中我们可以看出各个线程间的竞争关系。而数值并未按我们原先的顺序显示出来这是由于size这个数值被各个线程任意修改的缘故。这也往往是多线程编程要注意的问题。
+
+5 小结
+　　多线程编程是一个很有意思也很有用的技术，使用多线程技术的网络蚂蚁是目前最常用的下载工具之一，使用多线程技术的grep比单线程的grep要快上几倍，类似的例子还有很多。希望大家能用多线程技术写出高效实用的好程序来。
+
+作者：姚继锋 来自：http://www.china-pub.com
+
+进程同步的几种机制
+分类： unix 环境高级编程 C/C++学习 unix/linux学习篇 2011-10-21 23:54 946人阅读 评论(0) 收藏 举报
+signalsemaphorebuffer产品structinteger
+
+多进程的系统中避免不了进程间的相互关系。本讲将介绍进程间的两种主要关系——同步与互斥，然后着重讲解解决进程同步的几种机制。
+      进程互斥是进程之间发生的一种间接性作用，一般是程序不希望的。通常的情况是两个或两个以上的进程需要同时访问某个共享变量。我们一般将发生能够问共享变量的程序段称为临界区。两个进程不能同时进入临界区，否则就会导致数据的不一致，产生与时间有关的错误。解决互斥问题应该满足互斥和公平两个原则，即任意时刻只能允许一个进程处于同一共享变量的临界区，而且不能让任一进程无限期地等待。互斥问题可以用硬件方法解决，我们不作展开；也可以用软件方法，这将会在本讲详细介绍。
+      进程同步是进程之间直接的相互作用，是合作进程间有意识的行为，典型的例子是公共汽车上司机与售票员的合作。只有当售票员关门之后司机才能启动车辆，只有司机停车之后售票员才能开车门。司机和售票员的行动需要一定的协调。同样地，两个进程之间有时也有这样的依赖关系，因此我们也要有一定的同步机制保证它们的执行次序。
+本讲主要介绍以下四种同步和互斥机制：信号量、管程、会合、分布式系统。
+
+一，信号量
+
+参考自http://blog.csdn.net/leves1989/article/details/3305609
+
+理解PV：
+
+PV操作由P操作原语和V操作原语组成（原语是不可中断的过程），对信号量进行操作，具体定义如下：
+    P（S）：①将信号量S的值减1，即S=S-1；
+           ②如果S³0，则该进程继续执行；否则该进程置为等待状态，排入等待队列。
+    V（S）：①将信号量S的值加1，即S=S+1；
+           ②如果S>0，则该进程继续执行；否则释放队列中第一个等待信号量的进程。
+PV操作的意义：我们用信号量及PV操作来实现进程的同步和互斥。PV操作属于进程的低级通信。
+
+什么是信号量？信号量（semaphore）的数据结构为一个值和一个指针，指针指向等待该信号量的下一个进程。信号量的值与相应资源的使用情况有关。当它的值大于0时，表示当前可用资源的数量；当它的值小于0时，其绝对值表示等待使用该资源的进程个数。注意，信号量的值仅能由PV操作来改变。
+     一般来说，信号量S³0时，S表示可用资源的数量。执行一次P操作意味着请求分配一个单位资源，因此S的值减1；当S<0时，表示已经没有可用资源，请求者必须等待别的进程释放该类资源，它才能运行下去。而执行一个V操作意味着释放一个单位资源，因此S的值加1；若S£0，表示有某些进程正在等待该资源，因此要唤醒一个等待状态的进程，使之运行下去。
+
+利用信号量和PV操作实现进程互斥的一般模型是：
+进程P1              进程P2           ……          进程Pn
+……                  ……                           ……
+P（S）；              P（S）；                         P（S）；
+临界区；             临界区；                        临界区；
+V（S）；              V（S）；                        V（S）；
+……                  ……            ……           ……
+
+    其中信号量S用于互斥，初值为1。
+    使用PV操作实现进程互斥时应该注意的是：
+    （1）每个程序中用户实现互斥的P、V操作必须成对出现，先做P操作，进临界区，后做V操作，出临界区。若有多个分支，要认真检查其成对性。
+    （2）P、V操作应分别紧靠临界区的头尾部，临界区的代码应尽可能短，不能有死循环。
+   （3）互斥信号量的初值一般为1。
+
+利用信号量和PV操作实现进程同步
+PV操作是典型的同步机制之一。用一个信号量与一个消息联系起来，当信号量的值为0时，表示期望的消息尚未产生；当信号量的值非0时，表示期望的消息已经存在。用PV操作实现进程同步时，调用P操作测试消息是否到达，调用V操作发送消息。
+    使用PV操作实现进程同步时应该注意的是：
+
+    （1）分析进程间的制约关系，确定信号量种类。在保持进程间有正确的同步关系情况下，哪个进程先执行，哪些进程后执行，彼此间通过什么资源（信号量）进行协调，从而明确要设置哪些信号量。
+    （2）信号量的初值与相应资源的数量有关，也与P、V操作在程序代码中出现的位置有关。
+    （3）同一信号量的P、V操作要成对出现，但它们分别在不同的进程代码中。
+
+【例1】生产者-消费者问题
+在多道程序环境下，进程同步是一个十分重要又令人感兴趣的问题，而生产者-消费者问题是其中一个有代表性的进程同步问题。下面我们给出了各种情况下的生产者-消费者问题，深入地分析和透彻地理解这个例子，对于全面解决操作系统内的同步、互斥问题将有很大帮助。
+
+（1）一个生产者，一个消费者，公用一个缓冲区。
+定义两个同步信号量：
+empty——表示缓冲区是否为空，初值为1。
+   full——表示缓冲区中是否为满，初值为0。
+生产者进程
+while(TRUE){
+生产一个产品;
+     P(empty);
+     产品送往Buffer;
+     V(full);
+}
+消费者进程
+while(True){
+P(full);
+   从Buffer取出一个产品;
+   V(empty);
+   消费该产品;
+   }
+（2）一个生产者，一个消费者，公用n个环形缓冲区。
+定义两个同步信号量：
+empty——表示缓冲区是否为空，初值为n。
+full——表示缓冲区中是否为满，初值为0。
+
+    设缓冲区的编号为1～n-1，定义两个指针in和out，分别是生产者进程和消费者进程使用的指
+，指向下一个可用的缓冲区。
+生产者进程
+while(TRUE){
+     生产一个产品;
+     P(empty);
+     产品送往buffer（in）；
+     in=(in+1)mod n；
+     V(full);
+}
+
+消费者进程
+while(TRUE){
+P(full);
+   从buffer（out）中取出产品；
+   out=(out+1)mod n；
+   V(empty);
+   消费该产品;
+   }
+（3）一组生产者，一组消费者，公用n个环形缓冲区
+    在这个问题中，不仅生产者与消费者之间要同步，而且各个生产者之间、各个消费者之间还必须互斥地访问缓冲区。
+定义四个信号量：
+empty——表示缓冲区是否为空，初值为n。
+full——表示缓冲区中是否为满，初值为0。
+mutex1——生产者之间的互斥信号量，初值为1。
+mutex2——消费者之间的互斥信号量，初值为1。
+
+    设缓冲区的编号为1～n-1，定义两个指针in和out，分别是生产者进程和消费者进程使用的指针，指向下一个可用的缓冲区。
+生产者进程
+while(TRUE){
+     生产一个产品;
+     P(empty);
+     P(mutex1)；
+     产品送往buffer（in）；
+     in=(in+1)mod n；
+     V(mutex1);
+     V(full);
+}
+消费者进程
+while(TRUE){
+P(full)
+   P(mutex2)；
+   从buffer（out）中取出产品；
+   out=(out+1)mod n；
+   V（mutex2）；
+   V(empty);
+   消费该产品;
+   }
+  需要注意的是无论在生产者进程中还是在消费者进程中，两个P操作的次序不能颠倒。应先执行同步信号量的P操作，然后再执行互斥信号量的P操作，否则可能造成进程死锁。
+
+【例2】桌上有一空盘，允许存放一只水果。爸爸可向盘中放苹果，也可向盘中放桔子，儿子专等吃盘中的桔子，女儿专等吃盘中的苹果。规定当盘空时一次只能放一只水果供吃者取用，请用P、V原语实现爸爸、儿子、女儿三个并发进程的同步。
+
+分析 在本题中，爸爸、儿子、女儿共用一个盘子，盘中一次只能放一个水果。当盘子为空时，爸爸可将一个水果放入果盘中。若放入果盘中的是桔子，则允许儿子吃，女儿必须等待；若放入果盘中的是苹果，则允许女儿吃，儿子必须等待。本题实际上是生产者-消费者问题的一种变形。这里，生产者放入缓冲区的产品有两类，消费者也有两类，每类消费者只消费其中固定的一类产品。
+
+    解：在本题中，应设置三个信号量S、So、Sa，信号量S表示盘子是否为空，其初值为l；信号量So表示盘中是否有桔子，其初值为0；信号量Sa表示盘中是否有苹果，其初值为0。同步描述如下：
+int S＝1;
+int Sa＝0;
+int So＝0;
+      main()
+      {
+        cobegin
+            father();      /*父亲进程*/
+            son();        /*儿子进程*/
+            daughter();    /*女儿进程*/
+        coend
+    ｝
+   father()
+    {
+        while(1)
+          {
+            P(S);
+            将水果放入盘中;
+            if（放入的是桔子）V(So);
+            else  V(Sa);
+           }
+     }
+    son()
+    {
+        while(1)
+          {
+             P(So);
+             从盘中取出桔子;
+             V(S);
+             吃桔子;
+            ｝
+    }
+    daughter()
+    {
+         while(1)
+            {
+              P(Sa);
+              从盘中取出苹果;
+              V(S);
+              吃苹果;
+            ｝
+｝
+
+思考题：
+
+四个进程A、B、C、D都要读一个共享文件F，系统允许多个进程同时读文件F。但限制是进程A和进程C不能同时读文件F，进程B和进程D也不能同时读文件F。为了使这四个进程并发执行时能按系统要求使用文件，现用PV操作进行管理，请回答下面的问题：
+    （1）应定义的信号量及初值：                    。
+    （2）在下列的程序中填上适当的P、V操作，以保证它们能正确并发工作：
+     A()                B()                  C()                 D()
+      {                 {                    {                  {
+      [1];                [3];                  [5];                 [7];
+      read F;             read F;                read F;              read F;
+     [2];                [4];                  [6];                 [8];
+      }                  }                    }                  } 
+
+    思考题解答：
+（1）定义二个信号量S1、S2，初值均为1，即：S1=1，S2=1。其中进程A和C使用信号量S1，进程B和D使用信号量S2。
+（2）从[1]到[8]分别为：P(S1) V(S1) P(S2) V(S2) P(S1) V(S1) P(S2) V(S2)
+
+二，管程：参考自http://hi.baidu.com/zucenaa/blog/item/e63d22277c9d9c09918f9de2.html
+
+信号量机制功能强大，但使用时对信号量的操作分散，而且难以控制，读写和维护都很困难。因此后来又提出了一种集中式同步进程——管程。其基本思想是将共享变量和对它们的操作集中在一个模块中，操作系统或并发程序就由这样的模块构成。这样模块之间联系清晰，便于维护和修改，易于保证正确性。
+
+管程作为一个模块，它的类型定义如下：
+monitor_name = MoNITOR;
+共享变量说明;
+define 本管程内部定义、外部可调用的函数名表;
+use 本管程外部定义、内部可调用的函数名表;
+内部定义的函数说明和函数体
+{
+共享变量初始化语句;
+}
+
+从语言的角度看，管程主要有以下特性：
+（1）模块化。管程是一个基本程序单位，可以单独编译;
+（2）抽象数据类型。管程是中不仅有数据，而且有对数据的操作;
+（3）信息掩蔽。管程外可以调用管程内部定义的一些函数，但函数的具体实现外部不可见;
+对于管程中定义的共享变量的所有操作都局限在管程中，外部只能通过调用管程的某些函数来间接访问这些变量。因此管程有很好的封装性。
+为了保证共享变量的数据一致性，管程应互斥使用。 管程通常是用于管理资源的，因此管程中有进程等待队列和相应的等待和唤醒操作。在管程入口有一个等待队列，称为入口等待队列。当一个已进入管程的进程等待时，就释放管程的互斥使用权；当已进入管程的一个进程唤醒另一个进程时，两者必须有一个退出或停止使用管程。在管程内部，由于执行唤醒操作，可能存在多个等待进程（等待使用管程），称为紧急等待队列，它的优先级高于入口等待队列。
+因此，一个进程进入管程之前要先申请，一般由管程提供一个enter过程；离开时释放使用权，如果紧急等待队列不空，则唤醒第一个等待者，一般也由管程提供外部过程leave。
+管程内部有自己的等待机制。管程可以说明一种特殊的条件型变量：var c:condition；实际上是一个指针，指向一个等待该条件的PCB队列。对条件型变量可执行wait和signal操作：（联系P和V； take和give）
+wait(c):若紧急等待队列不空，唤醒第一个等待者，否则释放管程使用权。执行本操作的进程进入C队列尾部；
+signal(c):若C队列为空，继续原进程，否则唤醒队列第一个等待者，自己进入紧急等待队列尾部。
+
+【示例】
+
+生产者-消费者问题（有buffer）
+
+问题描述：(一个仓库可以存放K件物品。生产者每生产一件产品，将产品放入仓库，仓库满了就停止生产。消费者每次从仓库中去一件物品，然后进行消费，仓库空时就停止消费。
+解答：
+管程：buffer=MODULE;
+（假设已实现一基本管程monitor，提供enter,leave,signal,wait等操作）
+notfull,notempty:condition; // notfull控制缓冲区不满,notempty控制缓冲区不空；
+count,in,out: integer; 　　  // count记录共有几件物品，in记录第一个空缓冲区，out记录第一个不空的缓冲区
+buf:array [0..k-1] of item_type;
+define deposit,fetch;
+use monitor.enter,monitor.leave,monitor.wait,monitor.signal;
+
+
+procedure deposit(item);
+{
+　　if(count=k) monitor.wait(notfull);
+　　buf[in]=item;
+　　in:=(in+1) mod k;
+　　count++;
+　　monitor.signal(notempty);
+}
+procedure fetch:Item_type;
+{
+　　if(count=0) monitor.wait(notempty);
+　　item=buf[out];
+　　in:=(in+1) mod k;
+　　count--;
+　　monitor.signal(notfull);
+　　return(item);
+}
+{
+count=0;
+in=0;
+out=0;
+}
+
+进程：producer,consumer;
+producer（生产者进程）：
+Item_Type item;
+{
+　　while (true)
+　　{
+　　　　produce(&item);
+　　　　buffer.enter();
+　　　　buffer.deposit(item);
+　　　　buffer.leave();
+　　}
+}
+
+consumer（消费者进程）：
+Item_Type item;
+{
+　　while (true)
+　　{
+　　　　buffer.enter();
+　　　　item=buffer.fetch();
+　　　　buffer.leave();
+　　　　consume(&item);
+　　}
+}
+
+【附】有关wait和signal的语言表示
+
+信号量结构使用C语言表示如下：
+
+    typedef struct {
+        int value;//记录了这个信号量的值 
+        struct process *list;//储存正在等待这个信号量的进程 
+    } semaphore; 
+
+wait()信号量部分代码如下：
+
+    wait(semaphore *S) {
+        S->value--;
+        if(S->value < 0) {
+            add this process to S->list;
+            block();
+        }
+    } 
+
+signal()信号量部分代码如下：
+
+    signal(semaphore *S) {
+        S->value++;
+        if(S->value <= 0) {
+            remove a process P from S->list;
+            wakeup(P);
+        }
+    } 
+
+一、The Bounded-Buffer Problem：
+
+full初始化为0，empty初始化为n，mutex为1
+
+    do{
+        wait(full);
+        wait(mutex);
+        ...
+        //remove an item from buffer to nextc
+        ...
+        signal(mutex);
+        signal(empty);
+        ...
+        //consume the item in nextc
+        ...
+    } while(TRUE); 
+
+二、The Readers-Writers Problem：
+
+wrt初始化为1，readcount初始化为0，mutex为1
+
+写者操作：
+
+    do{
+        wait(wrt);
+        ...
+        //writing is performed 
+        ...
+        signal(wrt);
+    } while(TRUE); 
+
+读者操作：
+
+    do{
+        wait(mutex);//确保与signal(mutex)之间的操作不会被其他读者打断
+        readcount++;
+        if(readcount == 1)
+            wait(wrt);
+        signal(mutex);
+        ...
+        //reading is performed
+        ...
+        wait(mutex);
+        readcount--;
+        if(readcount == 0)
+            signal(wrt);
+        signal(mutex);
+    } while(TRUE); 
+
+三、The Dining-Philosophers Problem：
+
+所有的chopstick[5]全部初始化为1
+
+    do{
+        wait(chopstick[i]);
+        wait(chopstick[(i+1)%5]);
+        ...
+        //eating
+        ...
+        signal(chopstick[i]);
+        signal(chopstick[(i+1)%5]);
+        ...
+        //thinking
+        ...
+    } while(TRUE);
+
+但是这个解决方案的最大问题在于它会出现死锁。所以我认为应该增加一个信号量mutex，并初始化为1：
+
+    do{
+        wait(mutex);
+        wait(chopstick[i]);
+        wait(chopstick[(i+1)%5]);
+        signal(mutex);
+        ...
+        //eating  
+        ...
+        wait(mutex);
+        signal(chopstick[i]);
+        signal(chopstick[(i+1)%5]);
+        signal(mutex);
+        ...
+        //thinking  
+        ...
+    } while(TRUE);
+
+这样由于确保了一位哲学家在拿起两只筷子的时间内其他哲学家不可以拿起任何一支筷子，从而破坏了死锁出现需要的四个特征中的Hold And Wait特征，从而避免了死锁的发生。
+
+转自：http://www.cnblogs.com/sonic4x/archive/2011/07/05/2098036.html
+
+[置顶] unix环境高级编程-文件长度与截断
+分类： C/C++学习 2011-10-21 23:14 1075人阅读 评论(0) 收藏 举报
+unix编程filefunction磁盘测试
+
+4.12 文件长度
+
+stat 的结构成员st_size表示以字节为单位的文件长度。此字段只对普通文件、目录文件和符号链接有意义。
+
+对于普通文件，其文件的长度可以是0，在读此文件的时候，将得到文件结束指示。
+
+对于目录，文件长度通常是一个数的倍数，
+
+对于符号链接，文件长度是文件明中的世界字节数。
+
+ 
+
+现今，大多数UNIX系统提供的字段st_blksize和st_blocks。其中第一个是对文件I/O较为合适的的块长度。第二个是所分配的实际512字节块的数量。在3.9节中我们提到过，在读操作的时候，设这st_blksize时候，效率是最高的。
+
+ 
+
+文件中的空洞。
+
+在3.6节我们提到过文件空洞，由于设置的偏移量大于了文件的实际长度，并且写了数据，就会造成文件空洞现象。
+
+书中使用了 ls -l 命令对一个文件测试 大小是8M，但是使用du -a 的时候，显示该文件使用了磁盘空间总量的272个512字节块。很明显此文件有很多空洞。
+
+那么如果使用实用程序复制这种文件，那么所有这些空洞都会被填满，其中有实际数据字节皆天蝎为0
+
+ 
+
+4.13 文件截短
+
+有时候我们需要在文件尾端处截取一些数据以缩短文件。讲一个文件清空为0.是一个特例。在打开文件时候使用O_TRUNC标志就可以做到这一点。
+
+ 
+[cpp] view plaincopy
+
+    #include <unistd.h>  
+      
+    int truncate(const char* pathname,off_t length)  
+      
+    int ftruncate(int filedes,off_t length);  
+
+若成功则返回0，出错则返回-1
+
+C语言编译全过程
+分类： unix/linux学习篇 C/C++学习 2011-11-19 16:47 652人阅读 评论(1) 收藏 举报
+语言c汇编优化工作编译器
+编译的概念：编译程序读取源程序（字符流），对之进行词法和语法的分析，将高级语言指令转换为功能等效的汇编代码，再由汇编程序转换为机器语言，并且按照操作系统对可执行文件格式的要求链接生成可执行程序。
+    编译的完整过程：C源程序－－>预编译处理(.c)－－>编译、优化程序（.s、.asm）－－>汇编程序(.obj、.o、.a、.ko)－－>链接程序（.exe、.elf、.axf等）
+
+
+1. 编译预处理
+
+
+    读取c源程序，对其中的伪指令（以#开头的指令）和特殊符号进行处理
+伪指令主要包括以下四个方面：
+（1）宏定义指令，如#define Name TokenString，#undef等。
+对于前一个伪指令，预编译所要做的是将程序中的所有Name用TokenString替换，但作为字符串常量的 Name则不被替换。对于后者，则将取消对某个宏的定义，使以后该串的出现不再被替换。
+（2）条件编译指令，如#ifdef，#ifndef，#else，#elif，#endif等。
+这些伪指令的引入使得程序员可以通过定义不同的宏来决定编译程序对哪些代码进行处理。预编译程序将根据有关的文件，将那些不必要的代码过滤掉
+（3） 头文件包含指令，如#include "FileName"或者#include <FileName>等。
+在头文件中一般用伪指令#define定义了大量的宏（最常见的是字符常量），同时包含有各种外部符号的声明。
+    采用头文件的目的主要是为了使某些定义可以供多个不同的C源程序使用。因为在需要用到这些定义的C源程序中，只需加上一条#include语句即可，而不必再在此文件中将这些定义重复一遍。预编译程序将把头文件中的定义统统都加入到它所产生的输出文件中，以供编译程序对之进行处理。
+    包含到c源程序中的头文件可以是系统提供的，这些头文件一般被放在/usr/include目录下。在程序中#include它们要使用尖括号（< >）。另外开发人员也可以定义自己的头文件，这些文件一般与c源程序放在同一目录下，此时在#include中要用双引号（""）。
+（4）特殊符号，预编译程序可以识别一些特殊的符号。
+例如在源程序中出现的LINE标识将被解释为当前行号（十进制数），FILE则被解释为当前被编译的C源程序的名称。预编译程序对于在源程序中出现的这些串将用合适的值进行替换。
+   预编译程序所完成的基本上是对源程序的“替代”工作。经过此种替代，生成一个没有宏定义、没有条件编译指令、没有特殊符号的输出文件。这个文件的含义同没有经过预处理的源文件是相同的，但内容有所不同。下一步，此输出文件将作为编译程序的输出而被翻译成为机器指令。
+
+
+2. 编译、优化阶段
+
+
+    经过预编译得到的输出文件中，只有常量；如数字、字符串、变量的定义，以及C语言的关键字，如main,if,else,for,while,{,}, +,-,*,\等等。
+    编译程序所要作得工作就是通过词法分析和语法分析，在确认所有的指令都符合语法规则之后，将其翻译成等价的中间代码表示或汇编代码。
+    优化处理是编译系统中一项比较艰深的技术。它涉及到的问题不仅同编译技术本身有关，而且同机器的硬件环境也有很大的关系。优化一部分是对中间代码的优化。这种优化不依赖于具体的计算机。另一种优化则主要针对目标代码的生成而进行的。
+    对于前一种优化，主要的工作是删除公共表达式、循环优化（代码外提、强度削弱、变换循环控制条件、已知量的合并等）、复写传播，以及无用赋值的删除，等等。
+后一种类型的优化同机器的硬件结构密切相关，最主要的是考虑是如何充分利用机器的各个硬件寄存器存放的有关变量的值，以减少对于内存的访问次数。另外，如何根据机器硬件执行指令的特点（如流水线、RISC、CISC、VLIW等）而对指令进行一些调整使目标代码比较短，执行的效率比较高，也是一个重要的研究课题。
+    经过优化得到的汇编代码必须经过汇编程序的汇编转换成相应的机器指令，方可能被机器执行。
+
+
+  3. 汇编过程
+
+
+    汇编过程实际上指把汇编语言代码翻译成目标机器指令的过程。对于被翻译系统处理的每一个C语言源程序，都将最终经过这一处理而得到相应的目标文件。目标文件中所存放的也就是与源程序等效的目标的机器语言代码。
+目标文件由段组成。通常一个目标文件中至少有两个段：
+    代码段：该段中所包含的主要是程序的指令。该段一般是可读和可执行的，但一般却不可写。
+    数据段：主要存放程序中要用到的各种全局变量或静态的数据。一般数据段都是可读，可写，可执行的。
+UNIX环境下主要有三种类型的目标文件：
+（1）可重定位文件
+其中包含有适合于其它目标文件链接来创建一个可执行的或者共享的目标文件的代码和数据。
+（2）共享的目标文件
+   这种文件存放了适合于在两种上下文里链接的代码和数据。
+   第一种是链接程序可把它与其它可重定位文件及共享的目标文件一起处理来创建另一个 目标文件；
+  第二种是动态链接程序将它与另一个可执行文件及其它的共享目标文件结合到一起，创建一个进程映象。
+（3）可执行文件
+    它包含了一个可以被操作系统创建一个进程来执行之的文件。
+汇编程序生成的实际上是第一种类型的目标文件。对于后两种还需要其他的一些处理方能得到，这个就是链接程序的工作了。
+
+
+4. 链接程序
+
+
+    由汇编程序生成的目标文件并不能立即就被执行，其中可能还有许多没有解决
+的问题。
+    例如，某个源文件中的函数可能引用了另一个源文件中定义的某个符号（如变量或者函数调用等）；在程序中可能调用了某个库文件中的函数，等等。所有的这些问题，都需要经链接程序的处理方能得以解决。
+    链接程序的主要工作就是将有关的目标文件彼此相连接，也即将在一个文件中引用的符号同该符号在另外一个文件中的定义连接起来，使得所有的这些目标文件成为一个能够诶操作系统装入执行的统一整体。
+    根据开发人员指定的同库函数的链接方式的不同，链接处理可分为两种：
+（1）静态链接
+    在这种链接方式下，函数的代码将从其所在地静态链接库中被拷贝到最终的可执行程序中。这样该程序在被执行时这些代码将被装入到该进程的虚拟地址空间中。静态链接库实际上是一个目标文件的集合，其中的每个文件含有库中的一个或者一组相关函数的代码。
+（2） 动态链接
+    在此种方式下，函数的代码被放到称作是动态链接库或共享对象的某个目标文件中。链接程序此时所作的只是在最终的可执行程序中记录下共享对象的名字以及其它少量的登记信息。在此可执行文件被执行时，动态链接库的全部内容将被映射到运行时相应进程的虚地址空间。动态链接程序将根据可执行程序中记录的信息找到相应的函数代码。
+    对于可执行文件中的函数调用，可分别采用动态链接或静态链接的方法。使用动态链接能够使最终的可执行文件比较短小，并且当共享对象被多个进程使用时能节约一些内存，因为在内存中只需要保存一份此共享对象的代码。但并不是使用动态链接就一定比使用静态链接要优越。在某些情况下动态链接可能带来一些性能上损害。
+
+
+总结：
+    C语言编译的整个过程是非常复杂的，里面涉及到的编译器知识、硬件知识、工具链知识都是非常多的，深入了解整个编译过程对工程师理解应用程序的编写是有很大帮助的，希望大家可以多了解一些，在遇到问题时多思考、多实践。
+    一般情况下，我们只需要知道分成编译和连接两个阶段，编译阶段将源程序（*.c)转换成为目标代码（，一般是obj文件，至于具体过程就是上面说的那些阶段），连接阶段是把源程序转换成的目标代码（obj文件）与你程序里面调用的库函数对应的代码连接起来形成对应的可执行文件（exe文件）就可以了，其他的都需要在实践中多多体会才能有更深的理解。
+
+79）
+sigprocmask和pause连起来用可以实现sigsuspend的功能，但是可能会出错，还是尽量使用sigsuspend函数，因为sigsuspend是原子操作
+sigsuspend是一个原子操作，包含4个步骤：
+(1) 设置新的mask阻塞当前进程；
+(2) 收到信号，恢复原先mask；
+(3) 调用该进程设置的信号处理函数；
+(4) 待信号处理函数返回后，sigsuspend返回。
+
+80）
+/*
+信号应用-父子进程实现同步	apue程序清单10-17
+共享存储-/dev/zero的存储映射	apue程序清单15-12
+*/
+#include<fcntl.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<sys/mman.h>
+#include<signal.h>
+
+static volatile sig_atomic_t sigflag;
+static sigset_t newmask;	/*包含SIGUSR1和SIGUSR2的屏蔽字*/
+static sigset_t oldmask;	/*包含原先的屏蔽字*/
+static sigset_t zeromask;	/*调用suspend时使用的屏蔽字*/
+/*信号SIGUSR1和SIGUSR2的信号处理函数
+*/
+static void sig_usr(int signo)
+{
+	sigflag = 1;
+}
+/*TELL_WAIT函数作用就像信号处理的初始化过程，主要功能如下：
+设置SIGUSR1和SIGUSR2的信号处理函数为sig_usr
+初始化屏蔽字zeromask和newmask，并把SIGUSR1和SIGUSR2的屏蔽字加进newmask
+把newmask加入程序的信号屏蔽字中，并用oldmask保存原先的信号屏蔽字
+*/
+void TELL_WAIT(void)
+{
+        if (signal(SIGUSR1, sig_usr) == SIG_ERR)
+		{
+        	printf("signal(SIGUSR1) error\n");
+			exit(-1);
+		}
+        if (signal(SIGUSR2, sig_usr) == SIG_ERR)
+        {
+        	printf("signal(SIGUSR2) error\n");
+			exit(-1);
+		}
+        sigemptyset(&zeromask);
+        sigemptyset(&newmask);
+        sigaddset(&newmask, SIGUSR1);
+        sigaddset(&newmask, SIGUSR2);
+        /*
+         * Block SIGUSR1 and SIGUSR2, and save current signal mask.
+         */
+        if (sigprocmask(SIG_BLOCK, &newmask, &oldmask) < 0)
+		{
+        	printf("SIG_BLOCK error\n");
+			exit(-1);
+		}
+}
+
+/*
+TELL_PARENT函数和TELL_CHILD函数的主要作用就是通知父进程和子进程事件完成了，其实就是向父进程发SIGUSR2信号，向子进程发SIGUSR1信号
+*/
+void TELL_PARENT(pid_t pid)
+{
+	kill(pid, SIGUSR2);
+}
+
+void WAIT_PARENT(void)
+{
+	while(sigflag == 0)
+		sigsuspend(&zeromask);
+	sigflag = 0;
+	if(sigprocmask(SIG_SETMASK, &oldmask, NULL)<0)
+	{
+		printf("SIG_SETMASK ERROR\n");
+	}
+}
+
+void TELL_CHILD(pid_t pid)
+{
+	kill(pid, SIGUSR1);
+}
+
+void WAIT_CHILD(void)
+{
+	while(sigflag == 0)
+		sigsuspend(&zeromask);
+	sigflag = 0;
+	if(sigprocmask(SIG_SETMASK, &oldmask, NULL)<0)
+	{
+		printf("SIG_SETMASK ERROR\n");
+	}
+}
+
+#define NLOOPS 5
+#define SIZE sizeof(long)
+
+static int update(long *ptr)
+{
+	return((*ptr)++);
+}
+
+
+int main(int argc,char **argv)
+{
+	int fd, i, counter;
+	pid_t pid;
+	void *area;
+	if((fd = open("/dev/zero", O_RDWR))<0)
+	{
+		printf("open error\n");
+		exit(-1);
+	}
+	if((area = mmap(0, SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0)) == MAP_FAILED)
+	{
+		printf("mmap error\n");
+		exit(-1);
+	}
+	close(fd);
+	printf("the area value is [%ld]\n",*(long *)area);
+	
+	TELL_WAIT();
+	
+	if((pid = fork()) < 0)
+	{
+		printf("fork error\n");
+		exit(-1);
+	}
+	else if(pid > 0)
+	{
+		for(i = 0;i<NLOOPS;i+=2)
+		{
+			if((counter = update((long*)area)) != i)
+			{
+				printf("parent: expected %d, got %d\n", i, counter);
+				exit(-1);
+			}
+			printf("the area is [%ld]\n",*(long *)area);
+			TELL_CHILD(pid);
+			WAIT_CHILD();		
+		}
+	}
+	else
+	{
+		for(i = 1;i<NLOOPS+1;i+=2)
+		{
+			WAIT_PARENT();
+			if((counter = update((long*)area)) != i)
+			{
+				printf("child: expected %d, got %d\n", i, counter);
+				exit(-1);
+			}
+			printf("the area is [%ld]\n",*(long *)area);
+			TELL_PARENT(getppid());
+		}
+	}
+	printf("success...\n");
+	exit(0);
+}
+
+100)除错方法：
+打印日志看执行到哪等，find，看逻辑
