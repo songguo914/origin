@@ -1,0 +1,390 @@
+Makefile
+百科名片
+Makefile文件 Makefile 一个工程中的源文件不计数，其按类型、功能、模块分别放在若干个目录中，makefile定义了一系列的规则来指定，哪些文件需要先编译，哪些文件需要后编译，哪些文件需要重新编译，甚至于进行更复杂的功能操作，因为 makefile就像一个Shell脚本一样，其中也可以执行操作系统的命令。
+自动化编译
+　　　makefile带来的好处就是——“自动化编译”，一旦写好，只需要一个make命令，整个工程完全自动编译，极大的提高了软件开发的效率。make是一个命令工具，是一个解释makefile中指令的命令工具，一般来说，大多数的IDE都有这个命令，比如：Delphi的make，Visual C++的nmake，Linux下GNU的make。可见，makefile都成为了一种在工程方面的编译方法。 
+　　　在大型的开发项目中，人们通常利用 make 工具来自动完成编译工作。这些工作包括：
+　　　如果仅修改了某几个源文件，则只重新编译这几个源文件；
+　　　如果某个头文件被修改了，则重新编译所有包含该头文件的源文件。 
+　　　利用这种自动编译可大大简化开发工作，避免不必要的重新编译。
+默认情况，GNU make 工具在当前工作目录按如下顺序搜索 makefile： 
+ GNUmakefile 
+ makefile 
+ Makefile 
+主要功能
+　　Make工具最主要也是最基本的功能就是通过makefile文件来描述源程序之间的相互关系并自动维护编译工作。而makefile 文件需要按照某种语法进行编写，文件中需要说明如何编译各个源文件并连接生成可执行文件，并要求定义源文件之间的依赖关系。makefile 文件是许多编译器--包括 Windows NT 下的编译器--维护编译信息的常用方法，只是在集成开发环境中，用户通过友好的界面修改 makefile 文件而已。 
+　　如果要使用其他文件作为 makefile，则可利用类似下面的 make 命令选项指定 makefile 文件： 
+$ make -f Makefile.debug
+　　例如，一个名为prog的程序由三个C源文件filea.c、fileb.c和filec 
+   
+Makefile文件工程样例
+.c以及库文件LS编译生成，这三个文件还分别包含自己的头文件a.h 、b.h和c.h。通常情况下，C编译器将会输出三个目标文件filea.o、fileb.o和filec.o。假设filea.c和fileb.c都要声明用到一个名为defs的文件，但filec.c不用。即在filea.c和fileb.c里都有这样的声明： 
+　　#include "defs" 
+　　那么下面的文档就描述了这些文件之间的相互联系: 
+　　--------------------------------------------------------- 
+　　#It is a example for describing makefile 
+　　prog : filea.o fileb.o filec.o 
+　　cc filea.o fileb.o filec.o -LS -o prog 
+　　filea.o : filea.c a.h defs 
+　　cc -c filea.c 
+　　fileb.o : fileb.c b.h defs 
+　　cc -c fileb.c 
+　　filec.o : filec.c c.h 
+　　cc -c filec.c 
+　　---------------------------------------------------------- 
+　　这个描述文档就是一个简单的makefile文件。 
+　　从上面的例子注意到，第一个字符为 # 的行为注释行。第一个非注释行指定prog由三个目标文件filea.o、fileb.o和filec.o链接生成。第三行描述了如何从prog所依赖的文件建立可执行文件。接下来的4、6行分别指定三个目标文件，以及它们所依赖的.c和.h文件以及defs文件。而5、7、9行则指定了如何从目标所依赖的文件建立目标。 
+　　当filea.c或a.h文件在编译之后又被修改，则 make 工具可自动重新编译filea.o，如果在前后两次编译之间，filea.c 和a.h 均没有被修改，而且filea.o还存在的话，就没有必要重新编译。这种依赖关系在多源文件的程序编译中尤其重要。通过这种依赖关系的定义，make 工具可避免许多不必要的编译工作。当然，利用Shell脚本也可以达到自动编译的效果，但是，Shell 脚本将全部编译任何源文件，包括哪些不必要重新编译的源文件，而 make 工具则可根据目标上一次编译的时间和目标所依赖的源文件的更新时间而自动判断应当编译哪个源文件。 
+文件定义与命令
+　　Makefile文件作为一种描述文档一般需要包含以下内容: 
+　　◆ 宏定义
+◆ 源文件之间的相互依赖关系 
+　　◆ 可执行的命令 
+　　Makefile中允许使用简单的宏指代源文件及其相关编译信息，在Linux中也称宏为变量。在引用宏时只需在变量前加$符号，但值得注意的是，如果变量名的长度超过一个字符，在引用时就必须加圆括号（）。 
+下面都是有效的宏引用：
+　　$(CFLAGS) 
+　　$Z 
+　　$(Z) 
+　　其中最后两个引用是完全一致的。 
+　　需要注意的是一些宏的预定义变量，在Unix系统中，$*、$@、$?和$<四个特殊宏的值在执行命令的过程中会发生相应的变化，而在GNU make中则定义了更多的预定义变量。关于预定义变量的详细内容，宏定义的使用可以使我们脱离那些冗长乏味的编译选项，为编写makefile文件带来很大的方便。 
+　　--------------------------------------------------------- 
+　　# Define a macro for the object files 
+　　OBJECTS= filea.o fileb.o filec.o 
+　　# Define a macro for the library file 
+　　LIBES= -LS 
+　　# use macros rewrite makefile 
+　　prog: $(OBJECTS) 
+　　cc $(OBJECTS) $(LIBES) -o prog 
+　　…… 
+　　--------------------------------------------------------- 
+　　此时如果执行不带参数的make命令，将连接三个目标文件和库文件LS；但是如果在make命令后带有新的宏定义： 
+　　make "LIBES= -LL -LS" #如何实现？ 
+　　则命令行后面的宏定义将覆盖makefile文件中的宏定义。若LL也是库文件，此时make命令将连接三个目标文件以及两个库文件LS和LL。 
+　　在Unix系统中没有对常量NULL作出明确的定义，因此我们要定义NULL字符串时要使用下述宏定义： 
+　　STRINGNAME= //这里有待考证 
+　　makefile 中的变量（宏） 
+　　GNU 的 make 工具除提供有建立目标的基本功能之外，还有许多便于表达依赖性关系 
+　　以及建立目标的命令的特色。其中之一就是变量或宏的定义能力。如果你要以相同的编译 
+　　选项同时编译十几个 C 源文件，而为每个目标的编译指定冗长的编译选项的话，将是非 
+　　常乏味的。但利用简单的变量定义，可避免这种乏味的工作： 
+　　# Define macros for name of compiler 
+　　CC = gcc 
+　　# Define a macr o for the CC flags 
+　　CCFLAGS = -D_DEBUG -g -m486 
+　　# A rule for building a object file 
+　　test.o: test.c test.h 
+　　$(CC) -c $(CCFLAGS) test.c 
+　　在上面的例子中，CC 和 CCFLAGS 就是 make 的变量。GNU make 通常称之为变量， 
+　　而其他 UNIX 的 make 工具称之为宏，实际是同一个东西。在 makefile 中引用变量的值时，只需变量名之前添加 $ 符号，如上面的 $(CC) 和 $(CCFLAGS)。 
+　　GNU make 有许多预定义的变量，这些变量具有特殊的含义，可在规则中使用。表 13-2 
+　　给出了一些主要的预定义变量，除这些变量外，GNU make 还将所有的环境变量作为自己的预定义变量。 
+　　表 13-2 GNU make 的主要预定义变量 
+预定义变量
+　　含义 
+　　$* 
+　　不包含扩展名的目标文件名称。 
+　　$+ 
+　　所有的依赖文件，以空格分开，并以出现的先后为序，可能包含重复的依赖文件。 
+　　$< 
+　　第一个依赖文件的名称。 
+　　$? 
+　　所有的依赖文件，以空格分开，这些依赖文件的修改日期比目标的创建日期晚。 
+　　$@ 
+　　目标的完整名称。 
+　　$^ 
+　　所有的依赖文件，以空格分开，不包含重复的依赖文件。 
+　　$% 
+　　如果目标是归档成员，则该变量表示目标的归档成员名称。例如，如果目标名称为 
+　　(image.o)，则 $@ 为 ，而 $% 为 image.o。 
+　　AR 
+　　归档维护程序的名称，默认值为 ar。 
+　　ARFLAGS 
+　　归档维护程序的选项。 
+　　AS 
+　　汇编程序的名称，默认值为 as。 
+　　ASFLAGS 
+　　汇编程序的选项。 
+　　CC 
+　　C 编译器的名称，默认值为 cc。 
+　　CFLAGS 
+　　C 编译器的选项。 
+　　CPP 
+　　C 预编译器的名称，默认值为 $(CC) -E。 
+　　CPPFLAGS 
+　　C 预编译的选项。 
+　　CXX 
+　　C++ 编译器的名称，默认值为 g++。 
+　　CXXFLAGS 
+　　C++ 编译器的选项。 
+　　FC 
+　　FORTRAN 编译器的名称，默认值为 f77。 
+　　FFLAGS 
+　　FORTRAN 编译器的选项。 
+　　Makefile以文件名:文件名的形式比较冒号右边的文件是不是较左边的文件有更新，如果有更新则执行下一行的程序代码。因此Makefile可以把文件关联起来
+
+Makefile规则的一般形式如下：
+	target：dependency dependency
+		(tab)<command> 
+一个Makefile文件主要含有一系列的规则，每条规则包含以下内容。
+一个目标（target），即make最终需要创建的文件，如可执行文件和目标文件；目标也可以是要执行的动作，如“clean”。
+一个或多个依赖文件（dependency）列表，通常是编译目标文件所需要的其他文件。
+一系列命今(command)，是make执行的动作，通常是把指定的相关文件编译成目标文件的编译命令，每个命令占一行，且每个命令行的起始字符必须为TAB字符。
+除非特别指定，否则make的工作目录就是当前目录。target是需要创建的二进制文件或目标文件，dependency是在创建target时需要用到的一个或多个文件的列表，命令序列是创建target文件所需要执行的步骤，比如编译命令。 
+
+Makefile实例：
+# 以#开头的为注释行
+test：prog.o code.o
+	gcc –o test prog.o code.o
+ prog.o：prog.c prog.h code.h
+	gcc –c prog.c –o prog.o
+ code.o：code.c code.h
+	gcc –c code.c –o code.o
+ clean：
+	rm –f *.o 
+上面的Makefile文件中共定义了四个目标：test、prog.o、code.o和clean
+目标从每行的最左边开始写，后面跟一个冒号（：），如果有与这个目标有依赖性的其他目标或文件，把它们列在冒号后面，并以空格隔开。然后另起一行开始写实现这个目标的一组命令。
+在Makefile中，可使用续行号（\）将一个单独的命令行延续成几行。但要注意在续行号（\）后面不能跟任何字符（包括空格和键）
+
+一般情况下，调用make命令可输入：
+# make target
+target是Makefile文件中定义的目标之一，如果省略target，make就将生成Makefile文件中定义的第一个目标。
+对于上面Makefile的例子，单独的一个“make”命令等价于：
+# make test
+因为test是Makefile文件中定义的第一个目标，make首先将其读入，然后从第一行开始执行，把第一个目标test作为它的最终目标，所有后面的目标的更新都会影响到test的更新。
+规则说明只要文件test的时间戳比文件prog.o或code.o中的任何一个旧，下一行的编译命令将会被执行。
+
+但是，在检查文件prog.o和code.o的时间戳之前，make会在下面的行中寻找以prog.o和code.o为目标的规则，在第三行中找到了关于prog.o的规则，该文件的依赖文件是prog.c、prog.h和code.h。同样，make会在后面的规则行中继续查找这些依赖文件的规则，如果找不到，则开始检查这些依赖文件的时间戳，如果这些文件中任何一个的时间戳比prog.o的新，make将执行“gcc –c prog.c –o prog.o”命令，更新prog.o文件。
+以同样的方法，接下来对文件code.o做类似的检查，依赖文件是code.c和code.h。当make执行完所有这些套嵌的规则后，make将处理最顶层的test规则。如果关于prog.o和code.o的两个规则中的任何一个被执行，至少其中一个.o目标文件就会比test新，那么就要执行test规则中的命令，因此make去执行gcc命令将prog.o和code.o连接成目标文件test。
+在上面Makefile的例子中，还定义了一个目标clean，它是Makefile中常用的一种专用目标，即删除所有的目标模块
+
+例1：一个简单的makefile 
+prog:prog1.o prog2.o       gcc prog1.o prog2.o -o prog prog1.o:prog1.c lib.h       gcc -c -I. -o prog1.o prog1.c prog2.o:prog2.c      gcc -c prog2.c
+
+Makefile规则
+规则主要是描述哪些文件（称为target目标文件，不要和编译时产生的目标文件相混淆）是从哪些别的文件（称为dependency依赖文件）中产生的，以及用什么命令（command）来执行这个过程。
+
+目标文件不一定是最后的可执行文件，可以是任何一个中间文件并可以作为其他目标文件的依赖文件。
+
+现在来看一下make做的工作：
+首先make按顺序读取makefile中的规则，
+然后检查该规则中的依赖文件与目标文件的时间戳哪个更新
+如果目标文件的时问戳比依赖文件还早，就按规则中定义的命令更新目标文件。
+如果该规则中的依赖文件又是其他规则中的目标文件，那么依照规则链不断执行这个过程，直到Makefile文件的结束，至少可以找到一个不是规则生成的最终依赖文件，获得此文件的时间戳
+然后从下到上依照规则链执行目标文件的时间戳比此文件时间戳旧的规则，直到最顶层的规则
+
+下面两个例子相同，只是第二个用了自动推导：
+  objects = main.o kbd.o command.o display.o \
+               insert.o search.o files.o utils.o
+     edit : $(objects)
+             cc -o edit $(objects)
+     main.o : main.c defs.h
+             cc -c main.c
+     kbd.o : kbd.c defs.h command.h
+             cc -c kbd.c
+     command.o : command.c defs.h command.h
+             cc -c command.c
+     display.o : display.c defs.h buffer.h
+             cc -c display.c
+     insert.o : insert.c defs.h buffer.h
+             cc -c insert.c
+     search.o : search.c defs.h buffer.h
+             cc -c search.c
+     files.o : files.c defs.h buffer.h command.h
+             cc -c files.c
+     utils.o : utils.c defs.h
+             cc -c utils.c
+     clean :
+             rm edit $(objects)
+ 
+objects = main.o kbd.o command.o display.o \
+               insert.o search.o files.o utils.o
+     edit : $(objects)
+             cc -o edit $(objects)
+     main.o : defs.h
+     kbd.o : defs.h command.h
+     command.o : defs.h command.h
+     display.o : defs.h buffer.h
+     insert.o : defs.h buffer.h
+     search.o : defs.h buffer.h
+     files.o : defs.h buffer.h command.h
+     utils.o : defs.h
+     clean :
+             rm －rf edit $(objects)
+ 只要make看到一个.o文件，就会自动把.c文件加在依赖关系中 ；这就是make的隐晦规则。
+
+清空目标文件的规则：
+一般的风格都是：        
+ clean:
+            rm edit $(objects)
+更为稳健的做法是：        
+ .PHONY : clean
+  clean :
+             -rm edit $(objects)
+.PHONY意思表示clean是一个“伪目标”。
+而在rm命令前面加了一个小减号的意思就是，也许某些文件出现问题，但不要管，继续做后面的事
+不成文的规矩是——“clean从来都是放在文件的最后”。 
+
+make命令行选项：
+直接在 make 命令的后面键入目标名可建立指定的目标，如果直接运行 make，则建立第一个目标。还可以用 make -f mymakefile 这样的命令指定 make 使用特定的 makefile，而不是 默认的 GNUmakefile、makefile 或 Makefile。
+GNU make 命令还有一些其他选项：
+-C DIR      在读取 makefile 之前改变到指定的目录 DIR。 
+-f FILE       以指定的 FILE 文件作为 makefile。 
+-h              显示所有的 make 选项。 
+-i               忽略所有的命令执行错误。 
+-I DIR        当包含其他 makefile 文件时，可利用该选项指定搜索目录。 
+-n              只打印要执行的命令，但不执行这些命令。 
+-p              显示 make 变量数据库和隐含规则。 
+-s              在执行命令时不显示命令。 
+-w             在处理 makefile 之前和之后，显示工作目录。 
+-W FILE    假定文件 FILE 已经被修改。 
+
+文件指示。其包括了三个部分，一个是在一个Makefile中引用另一个Makefile，就像C语言中的include一样；另一个是指根据某些情况指定Makefile中的有效部分，就像C语言中的预编译#if一样；还有就是定义一个多行的命令。有关这一部分的内容，我会在后续的部分中讲述。 
+注释。Makefile中只有行注释，和Shell脚本一样，其注释是用“#”字符。如果你要在你的Makefile中使用“#”字符，可以用反斜框进行转义，如：“\#”。
+
+引用其它的makefile:
+语法：
+      include <filename>
+      filename可以是当前操作系统Shell的文件模式（可以保含路径和通配符）
+例几个Makefile：a.mk、b.mk、c.mk，还有一个文件叫foo.make，以及一个变量$(bar)，其包含了e.mk和f.mk，那么，下面的语句： 
+
+ include foo.make *.mk $(bar)
+等价于：   
+ include foo.make a.mk b.mk c.mk e.mk f.mk
+
+make的工作方式：
+1、读入所有的Makefile。 
+2、读入被include的其它Makefile。
+3、初始化文件中的变量。 
+4、推导隐晦规则，并分析所有规则。 
+5、为所有的目标文件创建依赖关系链。 
+6、根据依赖关系，决定哪些目标要重新生成。 
+7、执行生成命令。
+
+Makefile书写规则：
+规则包含两个部分：
+一个是依赖关系，
+一个是生成目标的方法。
+说明：
+第一条规则中的目标将被确立为最终的目标。
+如果第一条规则中的目标有很多个，那么，第一个目标会成为最终的目标。
+make所完成的也就是这个目标。
+
+在规则中使用通配符：
+make支持三各通配符：“*”，“?”和“[...]”。
+说明：
+“*.c”表示所有后缀为c的文件，可以用转义字符“\”，如“\*”来表示真实的“*”字符，而不是任意长度的字符串。
+例：
+clean: 
+   rm -f *.o 
+
+ print: *.c
+         lpr -p $?
+         touch print
+
+objects = *.o
+作用：objects的值就是“*.o”。
+objects := $(wildcard *.o) 
+作用：objects的值是所有[.o]的文件名的集合
+
+文件搜寻：
+VPATH = src:../headers： 在“src”和“../headers”，make会按照这个顺序进行搜索源文件
+vpath < pattern> < directories> ：为符合模式< pattern>的文件指定搜索目录< directories>。 
+vpath < pattern>：清除符合模式< pattern>的文件的搜索目录。 
+vpath ：清除所有已被设置好了的文件搜索目录
+说明：
+< pattern>需要包含“%”字符。“%”的意思是匹配零或若干字符，
+例：vpath %.h ../headers
+make在“../headers”目录下搜索所有以“.h”结尾的文件
+
+伪目标：
+clean:
+       rm *.o temp
+为了避免目标和文件重名，可以使用一个特殊的标记“.PHONY”来显示地指明一个目标是“伪目标”，向make说明，不管是否有这个文件，这个目标就是“伪目标”。 
+ .PHONY: clean
+ clean:
+       rm *.o temp
+
+更多的例子：
+all : prog1 prog2 prog3        #Makefile一下生成若干个可执行文件
+ .PHONY : all                        #为什么加这行？
+
+prog1 : prog1.o utils.o
+       gcc -o prog1 prog1.o utils.o
+
+prog2 : prog2.o
+       gcc -o prog2 prog2.o
+
+prog3 : prog3.o sort.o utils.o
+       gcc -o prog3 prog3.o sort.o utils.o
+
+多目标：
+bigoutput littleoutput : text.g
+            generate text.g -$(subst output,,$@) > $@
+
+    上述规则等价于：
+
+ bigoutput : text.g
+            generate text.g -big > bigoutput
+    littleoutput : text.g
+            generate text.g -little > littleoutput
+
+静态模式：
+语法：
+<targets ...>: <target-pattern>: <prereq-patterns ...>
+　　　<commands>
+...
+
+targets定义了一系列的目标文件，可以有通配符。是目标的一个集合。 
+target-parrtern是指明了targets的模式，也就是的目标集模式。 
+prereq-parrterns是目标的依赖模式，它对target-parrtern形成的模式再进行一次依赖目标的定义。 
+“目标模式”或是“依赖模式”中都应该有“%”这个字符
+
+举例：
+objects = foo.o bar.o
+    all: $(objects)
+
+    $(objects): %.o: %.c
+            $(CC) -c $(CFLAGS) $< -o $@
+
+展开后：
+
+    foo.o : foo.c
+            $(CC) -c $(CFLAGS) foo.c -o foo.o
+    bar.o : bar.c
+            $(CC) -c $(CFLAGS) bar.c -o bar.o
+
+Makefile书写命令：
+每条规则中的命令和操作系统Shell的命令行是一致的。
+make会一按顺序一条一条的执行命令，每条命令的开头必须以[Tab]键开头，除非，命令是紧跟在依赖规则后面的分号后的。
+在命令行之间中的空格或是空行会被忽略，但是如果该空格或空行是以Tab键开头的，那么make会认为其是一个空命令
+
+显示命令：
+@echo 正在编译XXX模块......
+
+仅输出： 正在编译XXX模块......
+
+echo 正在编译XXX模块......
+
+输出：
+    echo 正在编译XXX模块......
+　　正在编译XXX模块......
+　　
+　　命令执行：
+　　需要注意的是，如果你要让上一条命令的结果应用在下一条命令时，你应该使用分号分隔这两条命令。
+　　
+　　两示例的执行结果一样吗？
+　　示例一：
+　　       exec:
+　　                cd /home/hchen
+　　                pwd
+　　
+　　    示例二：
+　　        exec:
+　　                cd /home/hchen; pwd
+　　
+　　嵌套执行makefile：
+　　在一些大的工程中，不同模块或是不同功能的源文件放在不同的目录中，可以在每个目录中都书写一个该目录的makefile，这有利于makefile变得更加地简洁，而不至于把所有的东西全部写在一个makefile中，这个技术对于进行模块编译和分段编译有着非常大的好处。
+　　例如，有一个子目录叫subdir，这个目录下有个Makefile文件指明了这个目录下文件的编译规则。那么总控的Makefile可以书写：
+　　subsystem:     cd subdir && $(make)
+　　说明：一个子目录叫subdir，这个目录下有个Makefile文件，来指明了这个目录下文件的编译规则
+　　如果要传递变量到下级makefile中，那么可以使用export <variable ...>来声明
