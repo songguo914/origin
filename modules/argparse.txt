@@ -1,0 +1,734 @@
+ python学习之argparse模块
+分类： python 2014-12-22 19:50 125人阅读 评论(0) 收藏 举报
+python
+
+这里只给出常见的用法，具体原理和详细说明参考官网的说明文档：
+
+
+一、简介：
+
+argparse是python用于解析命令行参数和选项的标准模块，用于代替已经过时的optparse模块。argparse模块的作用是用于解析命令行参数，例如python parseTest.py input.txt output.txt --user=name --port=8080。
+
+二、使用步骤：
+
+        1：import argparse
+
+        2：parser = argparse.ArgumentParser()
+
+        3：parser.add_argument()
+
+        4：parser.parse_args()
+
+解释：首先导入该模块；然后创建一个解析对象；然后向该对象中添加你要关注的命令行参数和选项，每一个add_argument方法对应一个你要关注的参数或选项；最后调用parse_args()方法进行解析；解析成功之后即可使用，下面简单说明一下步骤2和3。
+
+三、方法ArgumentParser(prog=None, usage=None,description=None, epilog=None, parents=[],formatter_class=argparse.HelpFormatter, prefix_chars='-',fromfile_prefix_chars=None, argument_default=None,conflict_handler='error', add_help=True)
+
+这些参数都有默认值，当调用parser.print_help()或者运行程序时由于参数不正确(此时python解释器其实也是调用了pring_help()方法)时，会打印这些描述信息，一般只需要传递description参数，如上。
+
+四、方法add_argument(name or flags...[, action][, nargs][, const][, default][, type][, choices][, required][, help][, metavar][, dest])
+
+其中：
+
+name or flags：命令行参数名或者选项，如上面的address或者-p,--port.其中命令行参数如果没给定，且没有设置defualt，则出错。但是如果是选项的话，则设置为None
+
+nargs：命令行参数的个数，一般使用通配符表示，其中，'?'表示只用一个，'*'表示0到多个，'+'表示至少一个
+
+default：默认值
+
+type：参数的类型，默认是字符串string类型，还有float、int等类型
+
+help：和ArgumentParser方法中的参数作用相似，出现的场合也一致
+
+
+最常用的地方就是这些，其他的可以参考官方文档。下面给出一个例子，基本包括了常见的情形：
+
+[plain] view plaincopy在CODE上查看代码片派生到我的代码片
+
+    import argparse  
+      
+    def parse_args():  
+        description = """usage: %prog [options] poetry-file  
+      
+    This is the Slow Poetry Server, blocking edition.  
+    Run it like this:  
+      
+      python slowpoetry.py <path-to-poetry-file>  
+      
+    If you are in the base directory of the twisted-intro package,  
+    you could run it like this:  
+      
+      python blocking-server/slowpoetry.py poetry/ecstasy.txt  
+      
+    to serve up John Donne's Ecstasy, which I know you want to do.  
+    """  
+      
+        parser = argparse.ArgumentParser(description = description)  
+          
+        help = "The addresses to connect."  
+        parser.add_argument('addresses',nargs = '*',help = help)  
+      
+        help = "The filename to operate on.Default is poetry/ecstasy.txt"  
+        parser.add_argument('filename',help=help)  
+      
+        help = "The port to listen on. Default to a random available port."  
+        parser.add_argument('-p',--port', type=int, help=help)  
+      
+        help = "The interface to listen on. Default is localhost."  
+        parser.add_argument('--iface', help=help, default='localhost')  
+      
+        help = "The number of seconds between sending bytes."  
+        parser.add_argument('--delay', type=float, help=help, default=.7)  
+      
+        help = "The number of bytes to send at a time."  
+        parser.add_argument('--bytes', type=int, help=help, default=10)  
+      
+        args = parser.parse_args();  
+        return args  
+      
+    if __name__ == '__main__':  
+        args = parse_args()  
+          
+        for address in args.addresses:  
+            print 'The address is : %s .' % address  
+          
+        print 'The filename is : %s .' % args.filename  
+        print 'The port is : %d.' % args.port  
+        print 'The interface is : %s.' % args.iface  
+        print 'The number of seconds between sending bytes : %f'% args.delay  
+        print 'The number of bytes to send at a time : %d.' % args.bytes  
+
+运行该脚本：python test.py --port 10000 --delay 1.2  127.0.0.1 172.16.55.67 poetry/ecstasy.txt
+
+输出为：
+
+The address is : 127.0.0.1 .
+The address is : 172.16.55.67 .
+The filename is : poetry/ecstasy.txt .
+The port is : 10000.
+The interface is : localhost.
+The number of seconds between sending bytes : 1.200000
+The number of bytes to send at a time : 10.
+
+
+
+argparse 模块（一）
+分类： python3 2013-10-22 22:45 231人阅读 评论(0) 收藏 举报
+class argparse.ArgumentParser(prog=None, usage=None, description=None,epilog=None, parents=[], formatter_class=argparse.HelpFormatter, prefix_chars='-',fromfile_prefix_chars=None, argument_default=None, conflict_handler='error',add_help=True)
+
+    Create a new ArgumentParser object. All parameters should be passed as keyword arguments. Each parameter has its own more detailed description below, but in short they are:
+
+        prog - 设置程序名称
+        usage - 程序用法的字符串 (默认情况下，它根据parse的paramer 自动生成)
+        description - 程序描述字符串 (default: none)
+        epilog - 显示在程序帮助信息下的字符串 (default: none)
+        parents - 一个 ArgumentParser 对象的列表，这些ArugmentParser的 参数信息将被添加到此parser中
+        formatter_class - 可自定义hepl的输出信息，有四个现成的class
+            class argparse.RawDescriptionHelpFormatter   不格式化description 和epilog的字符串
+            class argparse.RawTextHelpFormatter          保留help信息中的所有空格
+            class argparse.ArgumentDefaultsHelpFormatter 默认使用的formatter_class
+            class argparse.MetavarTypeHelpFormatter      在help信息中现实参数的类型，而不是参数名
+
+        prefix_chars - 参数前缀 (default: ‘-‘)
+        fromfile_prefix_chars - 文件名前缀（即后面跟文件名路径，参数将从此文件中读取） (default: None)
+        argument_default - The global default value for arguments (default: None)
+        conflict_handler - 默认情况下，不允许有相同的参数。将此参数设置为'resolve'，则后写的参数可以覆盖之前相同的参数 (usually unnecessary)
+        add_help - 是否添加help参数的信息 (default: True)
+
+
+
+    ArgumentParser.add_argument(name or flags...[, action][, nargs][, const][, default][,type][, choices][, required][, help][, metavar][, dest])
+
+        Define how a single command-line argument should be parsed. Each parameter has its own more detailed description below, but in short they are:
+
+            name or flags - 参数名, e.g. foo or -f, --foo.
+            action - 遇到对应参数时采取的动作，
+                ‘store’：默认值，保存传入的参数值
+                ‘store_const'：保存const 参数指定的值
+                'store_true' and 'store_false' ：值为True或False
+                ’append‘：值为列表，将这个参数重复指定的值放到一个列表里面
+                ’append_const‘：值为列表，将参数重复指定的值放到const参数指定的列表里面
+                ’count‘：值为参数出现的次数
+                ’help‘：打印所有参数的完整help信息，然后退出。默认情况下help  action自动添加到parser
+                ’version‘：其后 需要再加一个version=关键字，打印版本信息，然后退出
+                你也可以设置为自己定义的action，简单的方法就是继承argparse.Action类。
+            nargs - 指明这个参数对应命令行中多少参数.
+                ’N‘：N个参数将被添加到一个列表作为此参数的值
+                ’？’：如果此参数出现，它的值为命令行指定的值。如果此参数没出现，则值为default 关键字
+            指定的值，如果此参数出现，但命令行中没有指定值，则此参数值为 const关键字指定的值
+                ‘*’：命令后中，此参数后面的值添加到一个列表里面，作为此参数的值
+                ‘+’：和‘*’ 类似，不同的是，命令行中此参数后不可为空，否则有错误提示
+                argparse.REMAINDER：命令行中所有其他的参赛，添加到一个列表作为此参数的值
+            const - A constant value required by some action and nargs selections.
+            default - The value produced if the argument is absent from the command line.
+                argparse.SUPPRESS：当设置default为此值时，所有未出现的参数将不会作为属性添加到Namespace
+            type - The type to which the command-line argument should be converted.
+
+            >> parser = argparse.ArgumentParser()
+            >>> parser.add_argument('foo', type=int)
+            >>> parser.add_argument('bar', type=open)
+            >>> parser.parse_args('2 temp.txt'.split())
+            Namespace(bar=<_io.TextIOWrapper name='temp.txt' encoding='UTF-8'>, foo=2)
+
+                type可以为任何可以调用，并且参数为string类型的函数：
+
+            >>> def perfect_square(string):
+            ...     value = int(string)
+            ...     sqrt = math.sqrt(value)
+            ...     if sqrt != int(sqrt):
+            ...         msg = "%r is not a perfect square" % string
+            ...         raise argparse.ArgumentTypeError(msg)
+            ...     return value
+            ...
+            >>> parser = argparse.ArgumentParser(prog='PROG')
+            >>> parser.add_argument('foo', type=perfect_square)
+            >>> parser.parse_args('9'.split())
+            Namespace(foo=9)
+            >>> parser.parse_args('7'.split())
+            usage: PROG [-h] foo
+            PROG: error: argument foo: '7' is not a perfect square
+
+
+            choices - 限制参数的取值范围，为一个列表.
+            required - 可选参数是否必须出现，默认为False，设置为True，则命令后中必须有可选参数。很奇怪的关键字(optionals only).
+            help - 参数的简单描述字符串
+
+            >>> parser = argparse.ArgumentParser(prog='frobble')
+            >>> parser.add_argument('bar', nargs='?', type=int, default=42,
+            ...         help='the bar to %(prog)s (default: %(default)s)')
+            >>> parser.print_help()
+
+
+            metavar - When ArgumentParser generates help messages, it needs some way to refer to each expected argument. By default, ArgumentParser objects use the dest value as the “name” of each object. By default, for positional argument actions, the dest value is used directly, and for optional argument actions, the dest value is uppercased. So, a single positional argument with dest='bar' will be referred to as bar. A single optional argument --foo that should be followed by a single command-line argument will be referred to as FOO. An example:
+
+            >>> parser = argparse.ArgumentParser()
+            >>> parser.add_argument('--foo')
+            >>> parser.add_argument('bar')
+            >>> parser.parse_args('X --foo Y'.split())
+            Namespace(bar='X', foo='Y')
+            >>> parser.print_help()
+            usage:  [-h] [--foo FOO] bar
+
+            positional arguments:
+             bar
+
+            optional arguments:
+             -h, --help  show this help message and exit
+             --foo FOO
+
+
+            dest - The name of the attribute to be added to the object returned byparse_args().设置parser的属性名。
+
+
+            
+            
+            
+ python 的 argparse模块
+分类： python 2012-02-28 22:21 3458人阅读 评论(0) 收藏 举报
+pythonfileactionc
+
+以前总是只用argv[1]之类的作为参数，这次看到一个题，基本上要用它了
+
+
+add_argument:读入命令行参数，该调用有多个参数
+ArgumentParser.add_argument(name or flags…[, action][, nargs][, const][, default][, type][, choices][, required][, help][, metavar][, dest])
+
+name or flags:是必须的参数，该参数接受选项参数或者是位置参数（一串文件名）
+
+
+
+[python] view plaincopy
+
+    >>> parser.add_argument('-f', '--foo')    #选项参数  
+    >>> parser.add_argument('bar')        #位置参数  
+
+
+nargs: 当选项后接受多个或者0个参数时需要这个来指定
+比如-u选项接受2个参数
+
+
+[python] view plaincopy
+
+    >>> parser.add_argument('-u',nargs=2)  
+    >>> parser.parse_args('-u a b'.split())  
+    Namespace(u=['a', 'b'])  
+
+
+当选项接受1个或者不需要参数时指定nargs=’?',当没有参数时，会从default中取值。对于选项参数有一个额外的情况，就是出现选项而后面没有跟具体参数，那么会从const中取值
+
+
+[python] view plaincopy
+
+    >>> parser.add_argument('-u',nargs='?')  
+    >>> parser.parse_args(''.split())  
+    Namespace(u=None)  
+    >>> parser.parse_args('-u a'.split())  
+    Namespace(u='a')  
+      
+    >>> parser.add_argument('-u',nargs='?',default='d')  
+    >>> parser.add_argument('A',nargs='?',default='e')  
+    >>> parser.parse_args(''.split())  
+    Namespace(A='e', u='d')  
+    >>> parser.parse_args('-u'.split())  
+    Namespace(A='e', u=None)  
+      
+    >>> parser.add_argument('-u',nargs='?',default='d',const='s')  
+    >>> parser.add_argument('A',nargs='?',default='T',const='P')  
+    >>> parser.parse_args(''.split())  
+    Namespace(A='T', u='d')  
+    >>> parser.parse_args('-u'.split())  
+    Namespace(A='T', u='s')  
+    >>> parser.parse_args('A'.split())  
+    Namespace(A='A', u='d')  
+
+
+
+而对于后面需要跟多个参数的情况（–foo a1 a2 a3…),则需要设置nargs=’*’
+
+
+[python] view plaincopy
+
+    >>> parser.add_argument('-u',nargs='*')  
+    >>> parser.parse_args('-u a b c d e'.split())  
+    Namespace(u=['a', 'b', 'c', 'd', 'e'])  
+
+
+
+
+nargs=’+'也和nargs=’*'一样，但是有一个区别当’+'时少于1个参数（没有参数）位置参数会报错误
+
+
+[python] view plaincopy
+
+    >>> parser.add_argument('u',nargs='+')  
+    >>> parser.parse_args(''.split())  
+    usage: [-h] u [u ...]  
+    : error: too few arguments  
+
+
+
+
+而‘*’会使用默认值
+
+
+[python] view plaincopy
+
+    >>> parser.add_argument('u',nargs='*',default='e')  
+    >>> parser.parse_args(''.split())  
+    Namespace(u='e')  
+
+
+
+default: 当参数需要默认值时，由这个参数指定，默认为None,当default=argparse.SUPPRESS时，不使用任何值
+
+
+[python] view plaincopy
+
+    >>> parser.add_argument('u',nargs='*',default=argparse.SUPPRESS)  
+    >>> parser.parse_args(''.split())  
+    Namespace()  
+
+
+type: 使用这个参数，转换输入参数的具体类型,这个参数可以关联到某个自定义的处理函数，这种函数通常用来检查值的范围，以及合法性
+
+[python] view plaincopy
+
+    >>> parser.parse_args('-u',type=int)  
+    >>> parser.add_argument('f',type=file)  
+    >>> parser.parse_args('-u 2 aa'.split())  
+    Namespace(f=<open file 'aa', mode 'r' at 0x8b4ee38>, u=2)  
+
+
+
+
+choices: 这个参数用来检查输入参数的范围
+
+[python] view plaincopy
+
+    >>> parser.add_argument('-u',type=int,choices=[1,3,5])  
+    >>> parser.parse_args('-u 3'.split())  
+    Namespace(u=3)  
+    >>> parser.parse_args('-u 4'.split())  
+    usage: [-h] [-u {1,3,5}]  
+    : error: argument -u: invalid choice: 4 (choose from 1, 3, 5)  
+
+
+
+required: 当某个选项指定需要在命令中出现的时候用这个参数
+
+[python] view plaincopy
+
+    >>> parser.add_argument('-u',required=True)  
+    >>> parser.parse_args(''.split())  
+    usage: [-h] -u U  
+    : error: argument -u is required  
+
+
+help: 使用这个参数描述选项作用
+
+[python] view plaincopy
+
+    >>> parser.add_argument('-u',required=True,default='wowo',help='%(prog)s for test sth(default: %(default)s)')  
+    >>> parser.print_help()                                                        usage: [-h] -u U  
+      
+    optional arguments:  
+      -h, --help  show this help message and exit  
+      -u U        for test sth(default: wowo)  
+
+
+
+
+dest: 这个参数相当于把位置或者选项关联到一个特定的名字
+
+[python] view plaincopy
+
+    >>> parser.add_argument('--str',nargs='*')  
+    >>> parser.parse_args('--str a b c'.split())  
+    Namespace(str=['a', 'b', 'c'])  
+      
+    >>> parser.add_argument('--str',nargs='*',dest='myname')  
+    >>> parser.parse_args('--str a b c'.split())  
+    Namespace(myname=['a', 'b', 'c'])  
+
+
+metavar: 这个参数用于help 信息输出中
+
+[python] view plaincopy
+
+    >>> parser.add_argument('--str',nargs='*',metavar='AAA')  
+    >>> parser.print_help()  
+    usage: [-h] [--str [AAA [AAA ...]]]  
+      
+    optional arguments:  
+      -h, --help            show this help message and exit  
+      --str [AAA [AAA ...]]  
+      
+    >>> parser.add_argument('str',nargs='*',metavar='AAA')  
+    >>> parser.print_help()  
+    usage: [-h] [AAA [AAA ...]]  
+      
+    positional arguments:  
+      AAA  
+      
+    optional arguments:  
+      -h, --help  show this help message and exit  
+      
+      
+      
+      
+
+Python 命令行解析工具 Argparse介绍（二）
+分类： python 2014-10-23 15:45 71人阅读 评论(0) 收藏 举报
+pythonargparse命令行
+
+今天学习python的argparse模块。看到了这样一篇文章，链接 http://www.cnblogs.com/jianboqi/archive/2013/01/10/2854726.html，题目是Python 命令行解析工具 Argparse介绍（一），翻译自python官网上的一篇 toturial，很基础，看完了找介绍（二），却在原作者那里没找到，于是就自己接着前辈的文章继续把这个totural翻译完了。
+
+
+选项参数
+
+现在让我们来看一下如何添加选项参数，例子如下。
+
+
+[python] view plaincopy
+
+    import argparse  
+    parser = argparse.ArgumentParser()  
+    parser.add_argument("--verbosity", help="increase output verbosity")  
+    args = parser.parse_args()  
+    if args.verbosity:  
+        print "verbosity turned on"  
+
+
+输出：
+$ python prog.py --verbosity 1
+verbosity turned on
+$ python prog.py
+$ python prog.py --help
+usage: prog.py [-h] [--verbosity VERBOSITY]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --verbosity VERBOSITY
+                        increase output verbosity
+$ python prog.py --verbosity
+usage: prog.py [-h] [--verbosity VERBOSITY]
+prog.py: error: argument --verbosity: expected one argument
+
+结果分析：
+1 这个程序在给出—verbosity选项值为1的时候输出 verbosity turned on，在没有verbosity选项的时候什么都没有输出。
+2 再次提醒这是一个可选的选项，可以看到当你在没有提供这个选项的情况下运行，程序不会报错（这点和“介绍一”中必选不同）
+3 可以看到帮助信息中有些不同，optional arguments：
+4 如果你使用这个选项的话，则必须要给出具体值，例子中是 1 ，你可以给定任何值。
+
+在以上的例子中，导致程序输出不同只有一个因素，就是args.verbosity的值是ture还是false。我们可以进行一点更改
+
+
+[python] view plaincopy
+
+    import argparse  
+    parser = argparse.ArgumentParser()  
+    parser.add_argument("--verbose", help="increase output verbosity",  
+                        action="store_true")  
+    args = parser.parse_args()  
+    print type(args.verbose)#博主在这个地方加了一句输出type的代码，是因为由于上个例子里面给定的参数是1，很容易误解成布尔型变量，而实际上这个args.verbose是字符串，这也是为什么你输入任何参数值都会执行print "verbosity turned on”  
+    if args.verbose:  
+       print "verbosity turned on”  
+
+
+
+输出：
+$ python prog.py --verbose
+verbosity turned on
+$ python prog.py --verbose 1
+usage: prog.py [-h] [--verbose]
+prog.py: error: unrecognized arguments: 1
+$ python prog.py --help
+usage: prog.py [-h] [--verbose]
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --verbose   increase output verbosity
+
+结果分析：
+1 在目前这种情况下（参数只有true和false两个值起作用），参数与其说是输入一个值，到时更像做一个标记（flag）。你也许已经注意到了，在上面的程序中，我们增加了一个新的关键字，action，并且赋值store.verbose，它表明，当使用选项的时候，就表示true，不使用则为false，当然在选项后面也无需添加参数，否则将会报错。
+2 注意help和刚刚有所不同，verbose后面没有参数。
+
+
+参数缩写
+
+
+如果你对命令行比较熟悉的话，对于参数的缩写形式肯定不会陌生。下面我们将为verbose添加缩写v。非常的简单。
+
+
+[python] view plaincopy
+
+    import argparse  
+    parser = argparse.ArgumentParser()  
+    parser.add_argument("-v", "--verbose", help="increase output verbosity",  
+                        action="store_true")  
+    args = parser.parse_args()  
+    if args.verbose:  
+        print "verbosity turned on”  
+
+
+
+输出
+$ python prog.py -v
+verbosity turned on
+$ python prog.py --help
+usage: prog.py [-h] [-v]
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -v, --verbose  increase output verbosity
+
+注意help的输出，你只需要在其中同时添加 -v 就可以了。
+
+位置参数和选项参数结合
+
+
+现在我们将我们的程序变得复杂一些。
+
+
+[python] view plaincopy
+
+    import argparse  
+    parser = argparse.ArgumentParser()  
+    parser.add_argument("square", type=int,  
+                        help="display a square of a given number")  
+    parser.add_argument("-v", "--verbosity", type=int,  
+                        help="increase output verbosity")  
+    args = parser.parse_args()  
+    answer = args.square**2  
+    if args.verbosity == 2:  
+        print "the square of {} equals {}".format(args.square, answer)  
+    elif args.verbosity == 1:  
+        print "{}^2 == {}".format(args.square, answer)  
+    else:  
+        print answer  
+
+
+
+
+输出
+$ python prog.py 4
+16
+$ python prog.py 4 -v
+usage: prog.py [-h] [-v VERBOSITY] square
+prog.py: error: argument -v/--verbosity: expected one argument
+$ python prog.py 4 -v 1
+4^2 == 16
+$ python prog.py 4 -v 2
+the square of 4 equals 16
+$ python prog.py 4 -v 3
+16
+
+简单介绍一下这个无聊的实例程序，可选参数v设置了输入为int型，然后分别输入参数，代表选择以不同的形式输出2的n次方。结果输出中却发现，除了1，2以外，所有其他参数值都是直接输出16（汗，你就这么写的怨谁）。所以，现在想把这个参数固定在0，1，2，就可以使用choice关键字，使用方法如下。
+
+
+[python] view plaincopy
+
+    parser.add_argument("-v", "--verbosity", type=int, choices=[0, 1, 2],  
+                        help="increase output verbosity")  
+
+
+
+
+另外，可以这样改进一下事例程序。
+[python] view plaincopy
+
+    import argparse  
+    parser = argparse.ArgumentParser()  
+    parser.add_argument("square", type=int,  
+                        help="display a square of a given number")  
+    parser.add_argument("-v", "--verbosity", action="count",  
+                        help="increase output verbosity")  
+    args = parser.parse_args()  
+    answer = args.square**2  
+      
+    # bugfix: replace == with >=  
+    if args.verbosity >= 2:  
+        print "the square of {} equals {}".format(args.square, answer)  
+    elif args.verbosity >= 1:  
+        print "{}^2 == {}".format(args.square, answer)  
+    else:  
+        print answer  
+
+
+
+输出：
+
+$ python prog.py 4 -vvv
+the square of 4 equals 16
+$ python prog.py 4 -vvvv
+the square of 4 equals 16
+$ python prog.py 4
+Traceback (most recent call last):
+  File "prog.py", line 11, in <module>
+    if args.verbosity >= 2:
+TypeError: unorderable types: NoneType() >= int()
+
+结果分析：
+1 这个action非常好玩，赋值为count的时候变成了查这个v的个数来传递给args.verbosity。
+2 注意一下这个错误，TypeError，当程序要求你输入一个必须参数，而你没有输入时，python会默认将这个参数赋值为None，None和int自然是不能比较的，于是引发了这个类型不匹配的错误。
+
+最后，让我们来解决无参数时候程序崩溃的bug。根据你的编程经验，就该知道，default关键字出场了。给程序加入default关键字。
+parser.add_argument("-v", "--verbosity", action="count", default=0,
+                    help="increase output verbosity”)
+
+输出：
+$ python prog.py 4
+16
+
+冲突选项
+
+
+下面介绍一下冲突选项的用法。使用方法add_mutually_exclusive_group()。
+[python] view plaincopy
+
+    import argparse  
+      
+    parser = argparse.ArgumentParser(description="calculate X to the power of Y")  
+    group = parser.add_mutually_exclusive_group()  
+    group.add_argument("-v", "--verbose", action="store_true")  
+    group.add_argument("-q", "--quiet", action="store_true")  
+    parser.add_argument("x", type=int, help="the base")  
+    parser.add_argument("y", type=int, help="the exponent")  
+    args = parser.parse_args()  
+    answer = args.x**args.y  
+      
+    if args.quiet:  
+        print answer  
+    elif args.verbose:  
+        print "{} to the power {} equals {}".format(args.x, args.y, answer)  
+    else:  
+        print "{}^{} == {}".format(args.x, args.y, answer)  
+
+
+
+
+输出
+$ python prog.py --help
+usage: prog.py [-h] [-v | -q] x y
+
+calculate X to the power of Y
+
+positional arguments:
+  x              the base
+  y              the exponent
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -v, --verbose
+  -q, —quiet
+
+可以从help中看到，这两个选项是互斥的。
+
+结束语
+
+
+argparse模块的功能自然远远要比这个强大，这个教程仅仅是一个基础篇，能够让大家快速入手。具体的大量事例用法请查看https://docs.python.org/2/library/argparse.html#module-argparse
+
+
+
+
+
+python模块之argparse：强大的命令行参数解析模块
+
+在用argparse模块之前，我一直是用optget模块，optget也比较简单好用，但是不够强大。比如说optget无法解析一个参数多个值的情况，如 --file file1 file2 file3...。经过一番寻寻觅觅之后发现了argparse这一神器，它能满足我对命令解析器的所有需求。它支持解析一参数多值，可以自动生成help命令和帮助文档，支持子解析器，支持限制参数取值范围等等功能。
+先新建一个解析器
+
+[python] view plaincopy
+
+    import argparse  
+    parser = argparse.ArgumentParser(description='This is a description of %(prog)s', epilog='This is a epilog of %(prog)s',   
+             prefix_chars='-+', fromfile_prefix_chars='@', formatter_class=argparse.ArgumentDefaultsHelpFormatter)  
+
+如果还有子命令的话，需要建一个子解析器
+
+[python] view plaincopy
+
+    subparsers  = parser.add_subparsers(help='sub-command help')  
+
+
+[python] view plaincopy
+
+    create_parser = subparsers.add_parser('create', help='fcg-easy create -h')  
+
+为解析器添加参数
+
+[python] view plaincopy
+
+    create_parser.add_argument('-g', '--group', type=str)  
+
+添加具有多个值的参数
+
+需要在添加参数时指定nargs='+'，如果某一参数具有多个值，那么将会得到一个值列表
+
+[python] view plaincopy
+
+    create_parser.add_argument('-d', '--disk', nargs='+', type=str)  
+
+还可以为解析器指定执行的函数
+
+[python] view plaincopy
+
+    create_parser.set_defaults(func=main_create)  
+
+最后解析参数
+
+[python] view plaincopy
+
+    args = parser.parse_args(cmdline)  
+
+得到的args是一个命名空间，空间里的变量名就是每个参数名，其值就是解析到的参数值。
+
+随后可以执行为命令指定的函数
+
+[python] view plaincopy
+
+    args.func(args)  
+
+    
+    
+    
+    
