@@ -1,0 +1,361 @@
+
+select vino,itcd,item,acno,amcd,tram,acnm,acbl,smcd
+from adsva
+where tlsq = "710020010313"
+order by vino;
+
+select vino,trcd,sbno,utno,acsb,acut,acno,tram,amcd
+from adsva
+where tlsq = "000199010026"
+and trdt = "20100520"
+and trcd = "r019"
+order by vino;
+
+select
+tlsq,trdt,trtm,trcd,tram,acbl,amcd,tmsp,cuac,smcd
+from psdsh
+where acno = '0125274430000658'
+order by trdt,trtm,tmsp;
+
+
+select acno from psmsa where acno in 
+(select msac from psaca where cuac in(
+select card from eviaa where skst ='0' and stcd ='0'));
+
+
+select a.card,b.acno from eviaa a,psaca c,psmsa b
+where
+a.card = c.cuac and
+c.msac = b.acno and
+a.skst ='0' and a.stcd ='0' and
+b.stcd ='0' and
+c.stcd ='0';
+
+
+select
+*
+from nftja
+where acno = '0106144510002223'
+order by trdt,tmsp;
+
+
+查询非账务日志：
+isql cmbc<<+
+unload to nftja.3 delimiter '@'
+select
+trdt,trcd,sudt,obdt,tmsp
+from nftja
+where acno = '0106144510002223'
+order by trdt,tlsq,tmsp;
+
+unload to nftja.2 delimiter '@'
+select
+*
+from nftjh20091130
+where acno = '0106144510002223'
+order by trdt,tlsq,tmsp;
+
+unload to nftja.1 delimiter '@'
+select
+*
+from nftjh20080331
+where acno = '0106144510002223'
+order by trdt,tlsq,tmsp;
++
+cat nftja.1>>nftja.tmp
+cat nftja.2>>nftja.tmp
+cat nftja.3>>nftja.tmp
+rm nftja.1
+rm nftja.2
+rm nftja.3
+awk -F "@" '{ print ""$3"  "$5"  "$7"  "$8"  "$9"  "$10"  "$11"  "$16"}' nftja.tmp>nftja.txt
+rm nftja.tmp
+
+
+unload to psdsh.lq
+select * from psdsh where acno ='';
+
+
+select acno,acbl,fzbl,ctbl,hobl
+from psmsb where
+fzbl >0 or ctbl >0 or hobl >0;
+
+
+select 
+*
+from lgnfa
+where acno = '0221014431695802';
+
+select
+* 
+from psmsa_tmp02t
+where cuac = '4155990288902437';
+
+
+select acno,trcd,trdt
+from nftjh20080331 where acno = '4155990581656722';
+acno                 trcd trdt
+
+011000077862         7181 20060220
+011000077862         1413 20070213
+011000077862         1413 20070612
+
+set explain out;
+
+
+select acno,trcd,trdt
+from nftjh20080331 where acno = '0313134430002075';
+select acno,trcd,trdt from nftjh20091130 where acno = '0313134430002075';
+select acno,trcd,trdt from nftja where acno = '0313134430002075';
+
+
+create table eviaa_ck(sbno char(4),cuno char(10));
+create index eviaa_ck_idx1 on eviaa_ck (sbno);
+insert into eviaa_ck values ('0101','0101010101');
+insert into eviaa_ck values ('0102','0101010102');
+insert into eviaa_ck values ('0103','0101010103');
+select * from eviaa_ck;
+select count(*)  from eviaa_ck;
+select * from eviaa_ck where sbno  ='0101';
+delete   from eviaa_ck where sbno like '%01';
+update eviaa_ck  set cuno = '01010202' ;
+update eviaa_ck  set cuno = '01010204' where sbno = '0102';
+drop table eviaa_ck;
+
+echo "0A00">procfile
+update gddta set
+LLDT = '20091225',
+LEDT = '20091226',
+TRDT = '20091227',
+NXDT = '20091228';
+echo "0D00">procfile
+
+update gddta set
+LLDT = '20091226',
+LEDT = '20091227',
+TRDT = '20091228',
+NXDT = '20091229';
+
+unload to aa from adsva where ;
+load from gdaca.200812192 insert into gdaca;
+delete from gdaca where trcd = "9033";
+unload to pdmfa.200903022 select * from pdmfa where acno = "4720680120075197";
+
+unload to adsva select * from adsva where trdt="20090717" and tlsq ="010600350001";
+load from adsva insert into adspa;
+
+update gdsba set stcd = "0" ;
+update gdsba set stcd = "1" where sbno not in ("0101","0100","0001","0102");
+
+load from psmsa.20090302 insert into psmsa;
+load from pdifa.20090302 insert into pdifa;
+load from psaca.20090302 insert into psaca;
+load from pdbka.20090302 insert into pdbka;
+load from pdmfa.20090302 insert into pdmfa;
+load from eviaa.20090302 insert into eviaa;
+load from psoca.20090302 insert into psoca;
+
+9911
+
+delete from esmca where acno = "0101014040001232";
+delete from esmca where acno = "0101014210014109";
+delete from edmea where acno = "0101012590000017";
+delete from eshoa where tlsq = "010100360018";
+load from esmca.ck1 insert into esmca;
+load from esmca.ck insert into esmca;
+load from edmea.ck insert into edmea;
+load from eshoa.ck insert into eshoa;
+
+unload to esmca.0401 select * from esmca where acno = "0101014040001257";
+unload to esmca.04012 select * from esmca where acno = "0101014040001249";
+unload to edmea.0401 select * from edmea where acno = "0101012590000025";
+unload to eshoa.0401 select * from eshoa where tlsq = "010100440006";
+
+OPFG=[4] UTNO=[0101] CABO=[0000] CETY=[01] CEBN=[0] PARV=[0.000000] FHID=[01]
+
+EXEC SQL select count(*)
+ from evcba
+  where ((csbt<=:101 and :101<=csed)
+  or (csbt<=:101 and 101<=101)
+  or (csbt>=:101 and csed<=:101))
+  and stcd="0" and ( cety="01"  and
+  cebn="0" and  fhid="01" and parv=0.00)
+  ;
+
+
+EXEC SQL select count(*)
+from evcda
+  where ((csbt<=101 and 101<=csed)
+  or (csbt<=101 and 101<=csed)
+  or (csbt>=101 and csed<=101))
+  and stcd="0" and ( cety="01" and
+  cebn="0" and skst='0'
+  and fhid="01" and parv=0.00)
+  ;
+
+
+rename table adsva to adsva1;
+
+
+0201
+
+unload to cdsia.18 select * from cdsia where cuno ="1213356281";
+unload to cdssa.18 select * from cdssa where cuno ="1213356281";
+delete from cdsia where cuno ="1213356281";
+delete from cdssa where cuno ="1213356281";
+
+
+unload to caify.ck.0603 select * from caify where coid = "622617" and crcl = "04";
+
+delete from adsva;
+delete from mibta;
+delete from midaa;
+
+
+
+
+
+unload to /cmbc/tmp/pdifa.ck select * from pdifa;
+update pdifa set stcd = "1" where cuno <>"4155990120191702"
+and SBNO = "0101" AND IFST = "0" AND damk = "1" AND stcd = "0";
+
+只保留0101机构
+update gdsba set stcd = "1"
+where sbno not in ("0100","0101","0001");
+放开所有机构
+update gdsba set stcd = "0";
+
+
+update btcta  set stcd ="0" where trcd  in ("9701","9703","9481","9482","9483","9484","9485","9486");
+9679  5500
+9910  6
+9607  9889
+
+echo "0A00">procfile
+echo "0D00">procfile
+
+
+
+SELECT  SBNO,UTNO,TLSQ,HONO,ACNO,GUAC,CYNO,MADT,SUM(TRAM),host,stcd
+FROM    ESHOA
+WHERE   SBNO= '0901'
+AND MADT <= '20091216'
+AND (CCNO[1, 2] NOT IN ("90", "91") OR (CCNO[1, 2] = "90" AND CCNO[5, 5] = "B"))
+GROUP BY  SBNO,UTNO,TLSQ,HONO,LCSN,CYNO,ACNO,GUAC,MADT,host,stcd
+
+
+update eshoa set host='1',stcd ='0';
+
+
+
+业务石飞雄反应，零整帐号0304014540002411做过1091维护，但是到期算利息按活期算，请查询原因。
+
+
+delete from mibta;
+delete from midaa;
+delete from mihua;
+
+select acno,auac from pdmfa where acno in (
+select msac from psaca where msac in(
+select acno from pdmfa where auac is not null) and acch !='0009');
+
+
+select acno,auac,stcd from pdmfa where acno in(
+select msac from psaca where msac in (
+select acno from pdmfa where auac in(
+select acno from ck.tmp) and stcd ='0') and acch != '0009') and  stcd ='0';
+
+
+select acno,auac,stcd from pdmfa where acno in(
+select acno from evi0a where acno in(
+select acno from pdmfa where auac in(
+select acno from ck.tmp) and stcd ='0'))
+
+
+常用命令：
+
+SED:
+sed = pdmfa.clean| sed 'N;s/\n/|/'  增加序号
+sed 's/ /|/' b.txt   空格替换 | ,只替换第一个
+sed 's/ /|/g' b.txt   空格替换 | , 全部
+sed 's/   */ /g' b.txt 删除一个以上空格用一个空格代替
+sed 's/    *//g' b.txt
+sed 's/[0-9][0-9][0-9][0-9]*/& avc/g' b.txt  追加加一个字符串
+sed 's/  [0-9]\{1,\}/ /g' b.txt   去掉2个空格以后的字符
+sed '1d' abc.txt  删除第一行。
+sed 's/^.//g' c.txt  删除行首字符
+sed 's/[0-9],/&|/g' c.txt
+sed 's/[0-9]\{10\}|0/&|/g' CUNO_18052
+sed 's/|0$/&|/g' CUNO_18052  以|0结尾的行追加|
+sed 's/$/&|/g' CUNO_18052  行尾追加|
+sed 's/^/&|/g' CUNO_18052   行首追加|
+
+
+FIND:
+find . -name 0c |xargs rm  删除大小为0字节的文件
+
+
+WC:
+用法：
+- c 统计字节数。
+- l 统计行数。
+- w 统计字数。
+
+知道指定后缀名的文件总个数命令：
+find . -name "*.cpp" | wc -l
+知道一个目录下代码总行数以及单个文件行数：
+find . -name "*.h" | xargs wc -l
+
+AWK:
+awk -F "|" '{ print ""$3"--"$5"" }' .txt>bbbbb
+
+awk -F "|" '{ print ""$2"" }' 深圳电信－银行补扣失败160.txt>select_txtawk -F "|" '{ print ""$1"" }' 深圳电信－银行补扣失败160.txt>select_txt
+        
+        awk -F "|" '{ print "delete from cusuh where cuac = \'"$1"\'\;" }' cubka.txt>bbbbb
+        
+cpdoc ck evi0a.txt
+isql cmbc<<+
+create table evi0ack (acno char(20));
+load from evi0a.txt insert into evi0ack;
+unload to evi0a.20100811
+select acno,fhid,cety,cebn,ccsq,skst,stcd from evi0a
+where acno in 
+(select * from evi0ack);
+unload to pdmfa.20100811
+select acno, acbl, stcd from pdmfa
+where acno in 
+(select * from evi0ack);
++
+ftpdoc ck evi0a.20100811
+ftpdoc ck pdmfa.20100811
+
+awk -F "|" '{ print ""$2"" }' liuqun.adsvh20100801>adsvh20100801
+
+isql cmbc<<+
+create table cupta2 (xuhao char(10),trdt char(8));
++
+
+
+select a.*,b.* from cupta1 a,cupta2 b where a.xuhao=b.xuhao and a.trdt !=b.trdt;
+
+awk -F "|" '{ print "update eviat set cuno = "$1" where cuno = "$2"" }' eviat.txt >eviat.sql
+
+awk -F "|" '{ print "update cdsia set enad = \"\" where cuno = \""$1"\";" }' cuno1.txt >cuno1.sql
+
+create temp table cdsiack (cuno char(10));
+load from cuno2.txt insert into cdsiack;
+unload to sbno.txt
+select cuno,opnt,stcd from cdsia where cuno in
+(select cuno from cdsiack);
+
+银联2.1 新增库表记录
+unload to gdacayl2.1.txt select * from gdaca where trcd in('g793','g794','g842','g845');
+unload to gdqmayl2.1.txt select * from gdqma where qmid in('00010','00011');
+unload to gdotayl2.1.txt select * from gdota where pmkw='ATM_ZQM' and pmcd in('ACBL10','ACBL11');
+unload to gditayl2.1.txt select * from gdita where item>='71111' and item <= '71113';
+unload to gdifayl2.1.txt select * from gdifa where item>='71111' and item <= '71113';
+unload to chateyl2.1.txt select * from chate where lbfg='1' and bdfg='0' and sckg='0' and gcty='02' and cakg='06';
+
+
+
+unload to psdsh.txt
