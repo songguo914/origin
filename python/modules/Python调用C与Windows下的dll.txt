@@ -1,0 +1,100 @@
+
+python调用dll方法
+
+在python中调用dll文件中的接口比较简单，实例代码如下：
+如我们有一个test.dll文件，内部定义如下：
+
+extern "C"
+{
+int __stdcall test( void* p, int len)
+{
+return len;
+}
+}
+在python中我们可以用以下两种方式载入
+1. 
+import ctypes
+dll = ctypes.windll.LoadLibrary( 'test.dll' )
+2.
+import ctypes
+dll = ctypes.WinDll( 'test.dll' )
+
+其中ctypes.windll为ctypes.WinDll类的一个对象，已经在ctypes模块中定义好的。在test.dll中有test接口，可直接用dll调用即可
+
+nRst = dll.test( )
+print nRst
+由于在test这个接口中需要传递两个参数，一个是void类型的指针，它指向一个缓冲区。一个是该缓冲区的长度。因此我们要获取到python中的字符串的指针和长度
+
+#方法一：
+sBuf = 'aaaaaaaaaabbbbbbbbbbbbbb'
+pStr = ctypes.c_char_p( )
+pStr.value = sBuf
+pVoid = ctypes.cast( pStr, ctypes.c_void_p ).value
+nRst = dll.test( pVoid, len( pStr.value) )
+
+#方法二：
+test  = dll.test
+test.argtypes = [ctypes.c_char_p, ctypes.c_int]
+test.restypes = ctypes.c_int
+nRst = test(sBuf, len(sBuf))
+如果修改test.dll中接口的定义如下：
+
+extern "C"
+{
+int __cdecl test( void* p, int len)
+{
+return len;
+}
+}
+
+由于接口中定义的是cdecl格式的调用，所以在python中也需要用相应的类型
+
+1.
+import ctypes
+dll = ctypes.cdll.LoadLibrary( 'test.dll' )
+##注：一般在linux下为test.o文件，同样可以使用如下的方法：
+## dll = ctypes.cdll.LoadLibrary('test.o')
+
+2.
+import ctypes
+dll = ctypes.CDll( 'test.dll' )
+使用python调用C编写的动态链接库
+使用ctypes模块可以很方便的调用DLL(也包括Linux下的so等文件)中的函数，下面将给出一个演示的例子。
+首先创建一个简单的DLL，直接拷贝自网上的某篇教程
+(Lib.h)
+#ifndef LIB_H
+#define LIB_H
+extern "C" int __declspec(dllexport)add(int x, int y);
+#endif
+(Lib.cpp)
+#include "Lib.h"
+
+int add(int x, int y)
+{
+return x + y;
+}
+
+编译为TestDLL.dll。
+然后建立一个Python文件TestDLLMain.py测试：
+from ctypes import *
+dll = CDLL("TestDLL.dll")
+print dll.add(1, 1)
+
+结果：2
+
+简单得不能再简单了！
+    Python调用windows下的dll 
+ctypes是一个Python模块，使用他可以在Python中创建和操作C语言的数据类型，这样可以在动态链接库中传递参数到C的函数中去。
+
+ctypes可以在windows/linux等多个平台上使用，甚至支持Windows上的COM开发！
+在windows上来段“hello world”吧：
+
+>>> from ctypes import *
+>>> MessageBox = windll.user32.MessageBoxA
+>>> MessageBox(0, '你好，世界！', '第一个ctypes程序', 0) # 调用函数
+大家可以看到弹出了一个标准的windows消息框，就这么简单 :-)
+
+实际上书写windll.user32的时候，自动调入了user32.dll这个windows动态库；windll.user32.MessageBoxA则直接引用到了user32.dll动态库中的MessageBox函数。
+
+
+

@@ -1,0 +1,130 @@
+ElementTree是python的XML处理模块，它提供了一个轻量级的对象模型。它在Python2.5以后成为Python标准库的一部分，但是Python2.4之前需要单独安装。在使用ElementTree模块时，需要import xml.etree.ElementTree的操作。
+
+ElementTree表示整个XML节点树，而Element表示节点数中的一个单独的节点。
+
+构建XML文件
+ElementTree(tag)，其中tag表示根节点，初始化一个ElementTree对象。
+Element(tag, attrib={}, **extra)函数用来构造XML的一个节点，其中tag表示根节点的名称，attrib是一个可选项，表示节点的属性。
+
+SubElement(parent, tag, attrib={}, **extra)用来构造一个已经存在的节点的子节点
+
+Element.text和SubElement.text表示element对象的额外的内容属性，Element.tag和Element.attrib分别表示element对象的标签和属性。
+
+ElementTree.write(file, encoding='us-ascii', xml_declaration=None, default_namespace=None, method='xml')，函数新建一个XML文件，并且将节点数数据写入XML文件中。
+
+#encoding=utf-8
+import xml.etree.ElementTree as ET
+
+#新建xml文件
+def buildNewsXmlFile():
+        #设置一个新节点，并设置其标签为root
+        root = ET.Element("root")
+
+        #在root下新建两个子节点,设置其名称分别为sina和chinabyte
+        sina = ET.SubElement(root, "sina")
+        chinabyte = ET.SubElement(root, "chinabyte")
+
+        #在sina下新建两个子节点，设置其节点名称分别为number和first
+        sina_number = ET.SubElement(sina, "number")
+        sina_number.text = "1"
+        sina_first = ET.SubElement(sina, "first")
+        sina_first.text = "http://roll.tech.sina.com.cn/internet_all/index_1.shtml"
+
+        #在chinabyte下新建两个子节点，设置其节点名称为number和first
+        chinabyte_number = ET.SubElement(chinabyte, "number")
+        chinabyte_number.text = "1"
+        chinabyte_first = ET.SubElement(chinabyte, "first")
+        chinabyte_first.text = "http://www.chinabyte.com/more/124566.shtml"
+
+        #将节点数信息保存在ElementTree中，并且保存为XML格式文件
+        tree = ET.ElementTree(root)
+        tree.write("urlfile.xml")
+
+解析和修改XML文件
+ElementTree.parse(source, parser=None)，将xml文件加载并返回ElementTree对象。parser是一个可选的参数，如果为空，则默认使用标准的XMLParser解析器。
+ElementTree.getroot()，得到根节点。返回根节点的element对象。
+Element.remove(tag)，删除root下名称为tag的子节点
+以下函数，ElementTree和Element的对象都包含。
+find(match)，得到第一个匹配match的子节点，match可以是一个标签名称或者是路径。返回一个element
+findtext(match,default=None)，得到第一个配置的match的element的内容
+findall(match)，得到匹配match下的所有的子节点，match可以是一个标签或者是路径，它会返回一个list，包含匹配的elements的信息
+
+iter(tag)，创建一个以当前节点为根节点的iterator。
+这里有一个xml文件
+<?xml version="1.0"?>
+<data>
+    <country name="Liechtenstein">
+        <rank>1</rank>
+        <year>2008</year>
+        <gdppc>141100</gdppc>
+        <neighbor name="Austria" direction="E"/>
+        <neighbor name="Switzerland" direction="W"/>
+    </country>
+    <country name="Singapore">
+        <rank>4</rank>
+        <year>2011</year>
+        <gdppc>59900</gdppc>
+        <neighbor name="Malaysia" direction="N"/>
+    </country>
+    <country name="Panama">
+        <rank>68</rank>
+        <year>2011</year>
+        <gdppc>13600</gdppc>
+        <neighbor name="Costa Rica" direction="W"/>
+        <neighbor name="Colombia" direction="E"/>
+    </country>
+</data>
+
+现在是解析xml文件的代码
+#解析Xml文件
+def parseXmlFile(xml_name):
+        #将XMl文件加载并返回一个ELementTree对象
+        tree = ET.parse(xml_name)
+
+        #得到第一个匹配country标签的Element对象
+        sina = tree.find("country")
+
+        #得到sina的SubElement
+        for sub_tag in sina:
+                print sub_tag.text
+
+        #得到所有匹配contry标签的Element对象的list集合
+        list_contry = tree.findall("country")
+
+        for contry in list_contry:
+                for sub_tag in contry:
+                        print sub_tag.text
+	#修改xml文件
+        for rank in tree.iter('rank')：
+	        new_rank = int(rank.text)+1
+        	rank.text = str(new_rank)
+        	rank.set('updated', 'yes')
+        tree.write(xml_name)
+
+第一次的输出是：1，2008，14100
+第二次的输出是：1，2008，14100，4，2011，59900，68，2011，13600
+
+修改后的xml文件为
+<?xml version="1.0"?>
+<data>
+    <country name="Liechtenstein">
+        <rank updated="yes">2</rank>
+        <year>2008</year>
+        <gdppc>141100</gdppc>
+        <neighbor name="Austria" direction="E"/>
+        <neighbor name="Switzerland" direction="W"/>
+    </country>
+    <country name="Singapore">
+        <rank updated="yes">5</rank>
+        <year>2011</year>
+        <gdppc>59900</gdppc>
+        <neighbor name="Malaysia" direction="N"/>
+    </country>
+    <country name="Panama">
+        <rank updated="yes">69</rank>
+        <year>2011</year>
+        <gdppc>13600</gdppc>
+        <neighbor name="Costa Rica" direction="W"/>
+        <neighbor name="Colombia" direction="E"/>
+    </country>
+</data>
