@@ -1,0 +1,26 @@
+这几天在搞PIM的设计模式，需要根据用户选择的控件来动态更改某个Panel的内容，从而来显示Property信息。那么就自然需要使用Sizer的动态改变控件的功能了。
+
+首先碰到的问题是Sizer的Detach和Destroy，原来的Remove不能使用，只能够先将某个控件Detach掉，然后，使用代码将控件Destroy。但是，对于Notebook这样的控件，单纯地调用Destroy和DestroyChilds的方法都没有效果，因为Notebook的GetChilds方法得不到所有Page的内容。于是，我就封装了一个Notebook的基类，然后，新增了一个destroy的方法：
+
+def destroy(self):
+        index = self.GetPageCount()
+        while(index > 0):
+            page = self.GetPage(index - 1)
+            for child in page.GetChildren():
+                child.Destroy()
+            self.RemovePage(index - 1)
+            index -= 1
+        self.Destroy()
+
+这样，Notebook的去除才没有问题。这样，更新内部控件的代码就修改成了这样：
+
+def update_interior(self, propertybook):
+        self.main_sizer.Detach(self._ori_val)
+        self._ori_val.destroy()
+        self._ori_val = propertybook
+        self.main_sizer.Add(propertybook, 1, wx.ALIGN_LEFT | wx.ALL, 0)
+        self.main_sizer.Layout()
+
+self._ori_val存储目前Container内部的Notebook。
+
+后面碰到了更新了Notebook以后，Page显示不出来的问题。结果发现，是传给Notebook的Parent错了，不是外部的Panel，而是Panel的parent,:( 

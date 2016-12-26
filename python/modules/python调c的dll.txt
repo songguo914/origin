@@ -1,0 +1,408 @@
+
+
+本文以实例讲解了Python调用C/C++ DLL动态链接库的方法，具体示例如下：
+
+示例一：
+
+首先，在创建一个DLL工程(本例创建环境为VS 2005)，头文件：
+	
+//hello.h
+#ifdef EXPORT_HELLO_DLL
+#define HELLO_API __declspec(dllexport)
+#else
+#define HELLO_API __declspec(dllimport)
+#endif
+extern "C"
+{
+ HELLO_API int IntAdd(int , int);
+}
+
+CPP文件：	
+//hello.cpp
+#define EXPORT_HELLO_DLL
+#include "hello.h"
+HELLO_API int IntAdd(int a, int b)
+{
+ return a + b;
+}
+
+这里有两个注意点：
+
+（1）弄清楚编译的时候函数的调用约定采用的__cdecl还是__stdcall，因为根据DLL中函数调用约定方式，Python将使用相应的函数加载DLL。
+
+（2）如果采用C++的工程，那么导出的接口需要extern "C"，这样python中才能识别导出的函数。
+
+我的工程中采用__cdecl函数调用约定方式进行编译链接产生hello.dll，然后Python中采用ctypes库对hello.dll进行加载和函数调用：
+
+from ctypes import *
+dll = cdll.LoadLibrary('hello.dll');
+ret = dll.IntAdd(2, 4);
+print ret;
+
+至此，第一个小例子已经完成了，读者可以自己动手尝试一下运行效果。
+
+示例二：
+
+示例一只是一个"hello world"级别的程序，实际运用中更多的需要传递数据结构、字符串等，才能满足我们的需求。那么本示例将展示，如何传递数据结构参数，以及如何通过数据结构获取返回值。
+
+首先编写DLL工程中的头文件：
+	
+//hello.h
+#ifdef EXPORT_HELLO_DLL
+#define HELLO_API __declspec(dllexport)
+#else
+#define HELLO_API __declspec(dllimport)
+#endif
+ 
+#define ARRAY_NUMBER 20
+#define STR_LEN 20
+ 
+struct StructTest
+{
+ int number;
+ char* pChar;
+ char str[STR_LEN];
+ int iArray[ARRAY_NUMBER];
+};
+ 
+extern "C"
+{
+ //HELLO_API int IntAdd(int , int);
+ HELLO_API char* GetStructInfo(struct StructTest* pStruct);
+}
+
+CPP文件如下：
+
+//hello.cpp
+#include <string.h>
+#define EXPORT_HELLO_DLL
+#include "hello.h"
+ 
+HELLO_API char* GetStructInfo(struct StructTest* pStruct)
+{
+ for (int i = 0; i < ARRAY_NUMBER; i++)
+ pStruct->iArray[i] = i;
+ pStruct->pChar = "hello python!";
+ strcpy (pStruct->str, "hello world!");
+ pStruct->number = 100;
+ return "just OK";
+}
+
+GetStructInfo这个函数通过传递一个StructTest类型的指针，然后对对象中的属性进行赋值，最后返回"just OK".
+
+编写Python调用代码如下，首先在Python中继承Structure构造一个和C DLL中一致的数据结构StructTest，然后设置函数GetStructInfo的参数类型和返回值类型，最后创建一个StructTest对象，并将其转化为指针作为参数，调用函数GetStrcutInfo，最后通过输出数据结构的值来检查是否调用成功：
+	
+from ctypes import *
+ARRAY_NUMBER = 20;
+STR_LEN = 20;
+#define type
+INTARRAY20 = c_int * ARRAY_NUMBER;
+CHARARRAY20 = c_char * STR_LEN;
+#define struct
+class StructTest(Structure):
+  _fields_ = [
+    ("number", c_int),
+    ("pChar", c_char_p),
+    ("str", CHARARRAY20),
+    ("iArray", INTARRAY20)
+        ]
+#load dll and get the function object
+dll = cdll.LoadLibrary('hello.dll');
+GetStructInfo = dll.GetStructInfo;
+#set the return type
+GetStructInfo.restype = c_char_p;
+#set the argtypes
+GetStructInfo.argtypes = [POINTER(StructTest)];
+objectStruct = StructTest();
+#invoke api GetStructInfo
+retStr = GetStructInfo(byref(objectStruct));
+#check result
+print "number: ", objectStruct.number;
+print "pChar: ", objectStruct.pChar;
+print "str: ", objectStruct.str;
+for i,val in enumerate(objectStruct.iArray):
+  print 'Array[i]: ', val;
+print retStr;
+
+总结:
+
+1. 用64位的Python去加载32位的DLL会出错
+2. 以上只是些测试程序，在编写Python过程中尽可能的使用"try Except"来处理异常
+3. 注意在Python与C DLL交互的时候字节对齐问题
+4. ctypes库的功能还有待继续探索
+
+
+
+
+
+
+
+
+ posts - 17,comments - 19,trackbacks - 0
+<	2013年8月	>
+日	一	二	三	四	五	六
+28	29	30	31	1	2	3
+4	5	6	7	8	9	10
+11	12	13	14	15	16	17
+18	19	20	21	22	23	24
+25	26	27	28	29	30	31
+1	2	3	4	5	6	7
+
+常用链接
+
+    我的随笔
+    我的评论
+    我参与的随笔
+
+留言簿(2)
+
+    给我留言
+    查看公开留言
+    查看私人留言
+
+随笔档案
+
+    2014年10月 (1)
+    2014年3月 (2)
+    2013年8月 (1)
+    2013年4月 (1)
+    2012年12月 (1)
+    2012年8月 (1)
+    2012年2月 (1)
+    2011年12月 (1)
+    2011年11月 (1)
+    2011年10月 (1)
+    2010年8月 (1)
+    2010年3月 (1)
+    2010年1月 (1)
+    2009年11月 (1)
+    2009年9月 (1)
+    2009年8月 (1)
+
+文章档案
+
+    2010年10月 (1)
+    2009年7月 (1)
+
+搜索
+
+     
+
+最新评论
+
+    1. re: 基于新浪股票的评级排序的基本面分析策略
+    评论内容较长,点击标题查看
+    --wangkang
+    2. re: 基于新浪股票的评级排序的基本面分析策略
+    @wangkang
+    谢谢！能否说明一下“新浪股票”整个的框架结构，或者说整个抓取、后续分析过程！？
+    --雪野狼孤
+    3. re: 基于新浪股票的评级排序的基本面分析策略
+    @雪野狼孤
+    抓页面自然是python方便， C++的库也很多， 最早的curl库就很方便， 这个问题度娘回答的会比我好。
+    --wangkang
+    4. re: 基于新浪股票的评级排序的基本面分析策略
+    怎么抓的页面？用python？有c++的用于抓网页的么！？
+    --雪野狼孤
+    5. re: 用python把图形转换为文本输出
+    学习了，还在学习中。。。
+    --租ipad
+
+    
+    
+    
+    
+
+
+python调用c dll api
+
+
+关键字： python dll调用 np类型转换 double
+
+
+关于python调用dll的文章有很多， 本篇主要描述对double数组传参的实现， 本人还没有发现类似的文章， 因此书写本文档加以说明。
+
+本文实现主要参考《用python进行科学计算》一书， 因此对环境有要求， 环境需要安装python(x,y)， 该软件可以很好的支持numpy库，
+否则用sf上下载的numpy安装包直接在python里安装貌似装了不生效， 也就是import numpy失败
+
+下面简单讲下实现过程
+
+1. 制作dll， 假设dll中有如下的导出函数， dll名为smooth
+// @param: n   数组长度
+// @param: x   [input/output] 一维数组
+// @param: y   [input/output]
+// @param: weights   [input]  可为0
+// @param: s   [input/output] 单值，返回新的x，y长度
+int smooth(int n, double* x, double* y, double* weights, double* s);
+
+
+2. 加载dll
+import numpy as np
+from ctypes import *
+
+dll = np.ctypeslib.load_library('smooth', '.')
+
+
+3. 执行函数
+c里的double是64位的， 因此简单的传参会是32位的， 比如用下面的实现就会有这样的问题
+smooth = dll.smooth
+#[Warning:下面是一个错误的演示]
+#描述参数类型
+smooth.argtypes = [c_int, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+#返回值类型
+smooth.restype = c_int
+x = [3.2, 3.9, 5.4, 5.9]
+x = np.array(x)
+y = np.array(x)
+w = np.array(0)
+s = np.array(10)
+smooth(len(x), x.ctypes.data_as(POINTER(c_double)), y.ctypes.data_as(POINTER(c_double)), w.ctypes.data_as(POINTER(c_double)), s.ctypes.data_as(POINTER(c_double)) )
+
+调用后python没有报错， 但不能得到正确的结果， 进入vc附加python进程， 在函数头加上断点， 查看参数内存， 可看出其是以int*方式传入的
+要让python以真正的64位double*传入可使用下面的实现
+#正确的调用
+smooth.argtypes = [
+    c_int,
+    np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags="C_CONTIGUOUS"), #一维数组，且内存连续的
+    np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags="C_CONTIGUOUS"),
+    np.ctypeslib.ndpointer(dtype=np.float64),
+    np.ctypeslib.ndpointer(dtype=np.float64)
+]
+smooth.restype = c_int
+m = [3.2, 3.9, 5.4, 5.9]
+x = np.arange(4, dtype=np.float64)
+y = np.arange(4, dtype=np.float64)
+w = np.cast["float64"](0)
+s = np.cast["float64"](10)
+for i in range(0, len(m)):
+ x[i] = m[i]
+ y[i] = m[i]
+smooth(len(x), x, y, w, s)
+
+题外话: python的参数基本可以看为指针， 类似引用等操作都可以轻松完成
+
+本人对numpy不是很熟， 可能对于np的参数初始化有更好的方式， 此处就算抛砖引玉吧，
+
+ 
+
+ 
+
+
+ 
+posted on 2013-08-27 11:34 wangkang 阅读(1472) 评论(0)  编辑 收藏 引用
+
+
+		
+	找优秀程序员，就在博客园
+标题 		
+姓名 		
+主页 		
+验证码 	* 	
+内容(提交失败后,可以通过“恢复上次提交”恢复刚刚提交的内容) 
+
+
+
+
+
+
+ctypes: 使用python调用C编写的动态链接库(转)
+(2008-05-13 16:45:23)
+转载▼
+标签：
+杂谈
+	
+
+ ctypes: 使用python调用C编写的动态链接库
+panjy 提交于 2004-11-03 21:21 Python
+ctypes是一个Python模块，使用他可以在Python中创建和操作C语言的数据类型，这样可以在动态链接库中传递参数到C的函数中去。
+
+必须得引用一段Python的创始人van Rossum对ctypes的评价了：
+
+  ctypes is very cool! Great piece of work.
+
+ctypes可以在windows/linux等多个平台上使用，甚至支持Windows上的COM开发！
+
+对ctypes的评价，我和van Rossum的感觉相同:) . 费话不说，在windows上来段“hello world”吧：
+
+>>> from ctypes import *
+
+>>> MessageBox = windll.user32.MessageBoxA 
+
+>>> MessageBox(0, ' 好，世界！', '第一个ctypes程序', 0) # 调用函数
+
+大家可以看到弹出了一个标准的windows消息框，就这么简单 :-)
+
+实际上书写windll.user32的时候，自动调入了user32.dll这个windows动态库；windll.user32.MessageBoxA则直接引用到了user32.dll动态库中的MessageBox函数。
+
+如此简洁、漂亮，C/C++程序员估计要嫉妒了 :-)
+
+
+
+
+
+Python 调用VC++的动态链接库(DLL)
+作者： 字体：[增加 减小] 类型：转载
+Python下调用VC++的动态链接库的脚本
+1. 首先VC++的DLL的导出函数定义成标准C的导出函数：
+复制代码 代码如下:
+
+#ifdef LRDLLTEST_EXPORTS
+#define LRDLLTEST_API __declspec(dllexport)
+#else
+#define LRDLLTEST_API __declspec(dllimport)
+#endif
+
+extern "C" LRDLLTEST_API int Sum(int a , int b);
+extern "C" LRDLLTEST_API void GetString(char* pChar);
+
+//a + b
+LRDLLTEST_API int Sum(int a , int b)
+{
+return a + b;
+}
+
+//Get a string
+LRDLLTEST_API void GetString(char* pChar)
+{
+strcpy(pChar, "Hello DLL");
+}
+
+
+2. Python中调用如下：
+复制代码 代码如下:
+
+from ctypes import *
+
+fileName="LRDllTest.dll"
+func=cdll.LoadLibrary(fileName)
+str = create_string_buffer(20)
+n = func.Sum(2, 3)
+func.GetString(str)
+
+print n
+print str.raw
+
+关于C语言中的一些参数类型详见：http://www.python.org/doc/2.5/lib/node454.html
+
+3. 输出结果：
+5
+Hello DLL
+您可能感兴趣的文章:
+
+    用Python的urllib库提交WEB表单
+    python采用requests库模拟登录和抓取数据的简单示例
+    Python库urllib与urllib2主要区别分析
+    Python标准库与第三方库详解
+    Python的高级Git库 Gittle
+    python中pycurl库的用法实例
+    推荐11个实用Python库
+
+QQ空间 新浪微博 腾讯微博 搜狐微博 人人网 开心网 百度搜藏 更多 0
+Tags：Python VC++ 动态链接库 DLL
+复制链接收藏本文打印本文关闭本文返回首页
+
+
+
+
+
+

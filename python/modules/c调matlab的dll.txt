@@ -1,0 +1,643 @@
+
+ Matlab7.0 编译器设置
+(1) mex 命令设置
+(a) 运行 Matlab ，在 Matlab 的命令窗口 (Command Window) 键入“ mex -setup ”命令后，按回车键，安装 Matlab 编译器；
+(b) 命令窗口出现如下提示：
+Please choose your compiler for building external interface (MEX) files:
+Would you like mex to locate installed compilers [y]/n?
+此时键入 ”y” ，按回车；
+(c) 命令窗口出现如下提示：
+Please choose your compiler for building external interface (MEX) files:
+Would you like mex to locate installed compilers [y]/n? y
+Select a compiler:
+[1] Digital Visual Fortran version 6.0 in C:\Program Files\Microsoft Visual Studio
+[2] Lcc C version 2.4 in C:\MATLAB6P5\sys\lcc
+[3] Microsoft Visual C/C++ version 6.0 in C:\Program Files\Microsoft Visual Studio
+[0] None
+此时键入 ” 3” ，按回车 ；选择 Microsoft Visual C++6.0 的编译器
+(d) 命令窗口出现如下提示：
+Please verify your choices:
+Compiler: Microsoft Visual C/C++ 6.0
+Location: C:\Program Files\Microsoft Visual Studio
+Are these correct?([y]/n):
+此时键入 ”y” ，按回车 ；确认选择 Microsoft Visual C++6.0 的编译器
+(2) mbuild 命令设置
+(a) 运行 Matlab ，在 Matlab 的命令窗口 (Command Window) 键入“ mbuild -setup ”命令后，按回车键，安装 Matlab 编译器；
+(b) 命令窗口出现如下提示：
+Please choose your compiler for building standalone MATLAB applications:
+Would you like mbuild to locate installed compilers [y]/n?
+此时键入 ”y” ，按回车 ；
+(c) 命令窗口出现如下提示：
+[1] Lcc C version 2.4 in C:\MATLAB6P5\sys\lcc
+[2] Microsoft Visual C/C++ version 6.0 in C:\Program Files\Microsoft Visual Studio
+[0] None
+此时键入 ” 2” ，按回车 ；选择 Microsoft Visual C++6.0 的编译器
+(d) 命令窗口出现如下提示：
+Please verify your choices:
+Compiler: Microsoft Visual C/C++ 6.0
+Location: C:\Program Files\Microsoft Visual Studio
+Are these correct?([y]/n):
+此时键入 ”y” ，按回车 ，确认选择 Microsoft Visual C++6.0 的编译器，编译器设置完成。
+3 、编写 Matlab 函数
+函数文件 sum_prod.m ，内容如下：
+function [sum,prod] = sum_prod(p1,p2)
+sum = p1+p2; % p1 与 p2 的和
+prod = p1.*p2; % p1 与 p2 的点乘
+该函数完成的是矩阵的求和与点乘的功能，下面将介绍把该代码转换成 VC++ 环境可用的代码的方法。
+4 、将 Matlab 函数转成 DLL 函数
+在 Matlab7.0 的 Command Window 下输入命令 :
+命令 1 ： mcc -W lib:libsum_prod -T link:lib sum_prod.m
+或
+命令 2 ： mcc -W cpplib:libsum_prod -T link:lib sum_prod.m
+解释：其中-W是控制编译之后的封装格式；
+cpplib，是指编译成C++的lib；
+cpplib冒号后面是指编译的库的名字；
+-T表示目标，link:lib表示要连接到一个库文件的目标，目标的名字即是.m函数的名字。
+生成动态链接库 DLL ，编译完成后， Matlab 生成一些文件，其中
+libsum_prod.ctf
+libsum_prod.dll
+libsum_prod.h
+libsum_prod.lib
+这些文件是我们后面需要用到的。
+特别注意 ： 命令 1 生成的 DLL 函数接口的数据类型是 mxArray ，命令 2 生成的 DLL 函数接口的数据类型是 mwArray 。
+5 、 VC++6.0 工程的创建与设置
+(1) 建立一个名为 Test 的 C++ 控制台工程，在工程中添加一个名为 Test.cpp 文件
+(2) 对 VC ＋＋ 6.0 ，进行以下设置
+单击菜单 Tools ，出现如下菜单
+单击 Options… 菜单项，出现 Options 对话框，选择 Directories 标签，在 include files 里面加入：
+C:\MATLAB7\EXTERN\INCLUDE
+
+在 Library files 里面加入：
+C:\MATLAB7\EXTERN\LIB\WIN32\MICROSOFT\MSVC60(有的没写\MSVC60，而且字母是小写)
+
+(3) 对该工程，进行以下设置
+单击菜单 Project ，出现如下菜单
+
+单击 Setting… 菜单项，出现 Project Setting 对话框，选择 Link 标签，在 Object/library modules: 下面的文本框内容的后面加入 mclmcrrt.lib libsum_prod.lib ，如下图所示
+
+6 、代码编辑及 DLL 调用
+(1) 将前面生成的四个文件：
+libsum_prod.ctf
+libsum_prod.dll
+libsum_prod.h
+libsum_prod.lib
+复制到 VC 工程所在目录。
+(2) 在 VC ＋＋ 6.0 环境中， 单击菜单 Project ， 选择 Add to Project 菜单项，再单击 Files… 子菜单项，出现如下图对话框，
+Matlab7.0函数转换成VC++6.0动态链接库[转] - MING - MING 的博客
+将 libsum_prod.h 加入到当前工程中。
+3) 当用命令 1 生成的 DLL 函数时 ，在工程文件 Test.cpp 中添加以下代码：
+#include "iostream.h" // 输入输出头文件
+#include "mclmcr.h" // mxArray 类型声明
+#include "libsum_prod.h" // DLL 头文件
+ 
+void display(const mxArray* in, const char* name);
+ 
+int main()
+{
+// 初始化程序
+if( ! mclInitializeApplication(NULL,0) )
+{
+fprintf(stderr, "Could not initialize the application.\n");
+exit(1);
+}
+// 初始化库
+if (! libsum_prodInitialize() )
+{
+fprintf(stderr,"Could not initialize the library.\n");
+exit(1);
+}
+ 
+// 声明 DLL 函数输入输出 mxArray 对象
+mxArray *X,*Y;
+mxArray *SUM=NULL,*PROD=NULL;
+ 
+// 给输入 mxArray 对象分配内存
+X = mxCreateDoubleMatrix(2,3,mxREAL);
+Y = mxCreateDoubleMatrix(2,3,mxREAL);
+ 
+double x[] = {1,2,3,4,5,6};
+double y[] = {7,8,9,10,11,12};
+ 
+// 给输入 mxArray 对象赋值
+memcpy(mxGetPr(X),x,6*sizeof(double));
+memcpy(mxGetPr(Y),y,6*sizeof(double));
+ 
+// 调用 DLL 函数，注意输入与输出的接口是不同的
+mlfSum_prod(2,&SUM,&PROD,X,Y) ;
+ 
+// 显示 mxArray 对象
+display(SUM,"SUM");
+display(PROD,"PROD");
+// 释放输入输出 mxArray 对象所占用的内存
+// 注意输出对象的内存是在调用 DLL 函数过程中分配的
+mxDestroyArray(X);
+mxDestroyArray(Y);
+mxDestroyArray(SUM);
+mxDestroyArray(PROD);
+ 
+// 关闭库和程序
+libsum_prodTerminate() ;
+mclTerminateApplication() ;
+return 0;
+}
+ 
+// 显示矩阵函数
+void display(const mxArray* in, const char* name)
+{
+ 
+ int i,j,r,c;
+ 
+ double *data;
+ 
+ 
+ 
+ data = mxGetPr(in);
+ 
+ r = mxGetM(in);
+ 
+ c = mxGetN(in);
+ 
+ 
+ 
+ printf("%s = \n",name);
+ 
+ for(i=0;i<r;i++)
+  
+ {
+  
+  printf("\t");
+  
+  for(j=0;j<c;j++)
+   
+   printf("% 4.2f \t",data[j*r+i]);
+  
+  printf("\n");
+  
+ }
+ 
+ printf("\n");
+ 
+}
+该 C++ 程序运算结果如下图所示
+Matlab7.0函数转换成VC++6.0动态链接库[转] - MING - MING 的博客
+(4) 当用命令 2 生成的 DLL 函数时 ，在工程文件 Test.cpp 中添加以下代码：
+#include "iostream.h" // 输入输出头文件
+#include "mclmcr.h" // mwArray 类型声明
+#include "libsum_prod.h" // DLL 头文件
+ 
+void display(const double* data, const int r, const int c, const char* name);
+ 
+int main()
+{
+// 初始化程序
+if( ! mclInitializeApplication(NULL,0) )
+{
+fprintf(stderr, "Could not initialize the application.\n");
+exit(1);
+}
+// 初始化库
+if (! libsum_prodInitialize() )
+{
+fprintf(stderr,"Could not initialize the library.\n");
+exit(1);
+}
+ 
+// 声明 DLL 函数输入输出 mwArray 对象
+mwArray X(2,3,mxDOUBLE_CLASS);
+mwArray Y(2,3,mxDOUBLE_CLASS);
+mwArray SUM,PROD;
+ 
+double x[] = {1,2,3,4,5,6};
+double y[] = {7,8,9,10,11,12};
+double *sum,*prod;
+ 
+sum = new double[6];
+prod = new double[6];
+ 
+// 给输入 mwArray 对象赋值
+X.SetData(x,6);
+Y.SetData(y,6);
+ 
+// 调用 DLL 函数
+sum_prod(2,SUM,PROD,X,Y) ;
+ 
+// 取出输出数据
+SUM.GetData(sum,6);
+PROD.GetData(prod,6);
+ 
+// 显示 mwArray 对象
+// std::cout << "SUM = " << std::endl << SUM << std::endl;;
+// std::cout << "PROD = " << std::endl << PROD << std::endl;;
+ 
+display(sum,2,3,"SUM");
+display(prod,2,3,"PROD");
+ 
+delete sum;
+delete prod;
+// 关闭库和程序
+libsum_prodTerminate() ;
+mclTerminateApplication() ;
+return 0;
+}
+ 
+// 显示矩阵函数
+void display(const double* data, const int r, const int c, const char* name)
+{
+int i,j;
+ 
+printf("%s = \n",name);
+for(i=0;i<r;i++)
+{
+printf("\t");
+for(j=0;j<c;j++)
+printf("% 4.2f \t",data[j*r+i]);
+printf("\n");
+}
+printf("\n");
+}
+该 C++ 程序运算结果如下图所示
+Matlab7.0函数转换成VC++6.0动态链接库[转] - MING - MING 的博客
+特别说明：
+在 C\C++ 环境中二维数组是“行向量” ，如果将下面定义的变量 x 看成二维数组的话
+double x[] = {1,2,3,4,5,6};
+那么 x 应该是 Matlab7.0函数转换成VC++6.0动态链接库[转] - MING - MING 的博客的矩阵，即
+x = [1,2,3;
+4,5,6];
+但是，如果将数组首地址 x 初始化 mxArray 和 mwArray 类时，数组 x 在 mxArray 和 mwArray 类中是按“列向量”的形式排列 的，即
+X = [1,3,5;
+2,4,6];
+同理，这里
+Y = [7,9,11;
+8,10,12];
+因此才能得到上图的结果
+
+
+
+
+
+
+    
+    
+    
+    
+c++调用matlab生成的Dll动态连接库
+实验平台：
+   matlab 7.0(R2009a)   VC++6.0
+思路：
+1. 设置matlab的编译器，使用外部的VC或者gcc等编译器。
+2. 编译m文件成dll
+3. 设置VC的Include路径和lib链接库的路径
+4. 编写C++调用dll
+步骤：
+1.    设置matlab的编译器
+在命令行窗口下，输入并执行如下命令：mex –setup
+在出现的编译器中，选择VC++6.0
+然后在输入命令：mbuild –setup 同样选择VC++6.0
+2.    编写.m文件
+如下函数时完成图像的分割功能，第一个参数是图像的文件名(路径)，第二个参数是分割图像阈值的大小；完成分割后，将图像保存为result.bmp;返回值则是原图像的数据；
+源码打印？
+
+    function imagedata=improcess(filename,threshold);  
+    imagedata=double(imread(filename));  
+    newbuf=imagedata;  
+    [M N]=size(imagedata);  
+    for i=1:1:M  
+      for j=1:1:N  
+          if imagedata(i,j)>threshold  
+              newbuf(i,j)=255;  
+          else  
+              newbuf(i,j)=0;  
+          end  
+      end  
+    end  
+    imwrite(uint8(newbuf),'result.bmp');  
+    return;  
+
+
+
+3.    编译.m文件
+mcc -W cpplib:MatImprocess -T link:lib improcess
+编译完成之后，MatImprocess.h MatImprocess.lib MatImprocess.dll这三个文件时我们在c++中调用所需要的；这三个文件和我们用c++编写dll时，生成的三个文件时对应的；
+VC中的调用步骤
+1.    设置VC环境
+将matlab的头文件路径和对应的库文件路径包含到VC++6.0；在VC++6.0中，点‘工具’->‘选项’，然后在‘目录’选项卡中，将‘Include files’的最后一行，添加matlab相关的头文件；如我的matlab对应的路径为：
+E:\matlab7.0\extern\include
+将下拉框换为‘Library files’，将matlab相关的静态链接库的路径加入其中：
+E:\matlab7.0\extern\lib\win32\microsoft
+2.    新建一个基于控制台的hello World程序；
+2.1    添加必须的头文件和必须的静态链接库
+源码打印？
+
+    #pragma comment(lib,"mclmcrrt.lib")  
+    #pragma comment(lib,"libmx.lib")  
+    #pragma comment(lib,"libmat.lib")  
+    #pragma comment(lib,"mclmcr.lib")  
+    #include "Afxwin.h"  
+    #include "mclmcr.h"  
+    #include "matrix.h"  
+    #include "mclcppclass.h"  
+
+
+
+2.2    将matlab编译生成的MatImprocess.h MatImprocess.lib MatImprocess.dll文件拷贝到工程目录下；并将头和静态链接库添加到工程中：
+#pragma comment(lib,"MatImprocess.lib")
+#include "MatImprocess.h"
+2.3    编辑main函数，调用improcess函数；
+源码打印？
+
+    int main(int argc, char* argv[])  
+    {  
+       //初始化  
+        if( !MatImprocessInitialize())  
+        {  
+            printf("Could not initialize !");  
+            return -1;    
+        }  
+        mwArray file_name(1,9, mxCHAR_CLASS);//'lenna.pgm'  
+        char f_name[10]="lenna.pgm";  
+    //必须将lenna.pgm图像，拷贝到工程目录下  
+        file_name.SetData(f_name,9);  
+        mwArray m_threshold(1,1, mxDOUBLE_CLASS);  
+        m_threshold(1,1)=128;//阈值为128  
+        mwArray ImageData(512,512, mxDOUBLE_CLASS);  
+        improcess(1,ImageData,file_name,m_threshold);  
+    //1,表示返回值的个数，ImageData用于接收返回值  
+        printf("\n图像处理结束,已经图像以阈值128分割开！\n");  
+        double *resultdata=new double[512*512];  
+        ImageData.GetData(resultdata,512*512);  
+        printf("\n已获得图像数据...\n");  
+        for(int i=0;i<512;i++)  
+        {  
+            for(int j=0;j<512;j++)  
+            {  
+                printf("%0.1f ",resultdata[512*i+j]);  
+            }  
+            printf("\n");  
+        }  
+        delete []resultdata;  
+        // 后面是一些终止调用的程序  
+        // terminate the lib     
+        MatImprocessTerminate();     
+        // terminate MCR  
+        mclTerminateApplication();    
+        return 0;  
+    }  
+
+
+
+解析：从上面的程序我们可以看出，c++与matlab函数数据传递是借助matlab定义的mwArray类完成的！该类支持的数据类型有：
+/*typedef enum
+    {
+    mxUNKNOWN_CLASS = 0,
+    mxCELL_CLASS,
+    mxSTRUCT_CLASS,
+    mxLOGICAL_CLASS,
+    mxCHAR_CLASS,
+    mxVOID_CLASS,
+    mxDOUBLE_CLASS,
+    mxSINGLE_CLASS,
+    mxINT8_CLASS,
+    mxUINT8_CLASS,
+    mxINT16_CLASS,
+    mxUINT16_CLASS,
+    mxINT32_CLASS,
+    mxUINT32_CLASS,
+    mxINT64_CLASS,
+    mxUINT64_CLASS,
+    mxFUNCTION_CLASS,
+    mxOPAQUE_CLASS,
+      mxOBJECT_CLASS}*/
+同时我们应注意：mwArray类定义的对象数组，其坐标仍然是从1开始，而不是像c++那样，从0开始！mwArray的更详细的用法，可以参看mclcomclass.h 
+
+
+
+
+
+
+
+VS2008 C++ 调用MATLAB 2009b 生成的DLL
+刚开始学习用VC++调用matlab生成的DLL，找了网上一些资料，难以找到vs2008与MATLAB2009b版本的，按照以往版本做的总是有很多错误。经过两天努力，终于调试成功，这里将经验总结一下，以供有需要的人们参考。
+
+实验环境：
+Win7
+MATLAB 2009b（安装路径：E:/Program Files/MATLAB/R2009a）
+
+VS2008 中文版（安装路径：E:/Program Files/Microsoft Visual Studio 9.0）
+1.Matlab 生成DLL
+1.1编译器的安装
+
+在matlab中先安装编译器，我在第一次安装的时候一路y下来，只有一个compiler，还是最老的。这教育我们要学会说N，按照以下步骤操作
+
+>> mbuild -setup
+
+Please choose your compiler for building standalone MATLAB applications:
+
+Would you like mbuild to locate installed compilers [y]/n? n
+Select a compiler:
+
+[1] Lcc-win32 C 2.4.1
+
+[2] Microsoft Visual C++ 6.0
+
+[3] Microsoft Visual C++ .NET 2003
+
+[4] Microsoft Visual C++ 2005 SP1
+
+[5] Microsoft Visual C++ 2008 Express
+
+[6] Microsoft Visual C++ 2008 SP1
+
+[0] None
+
+ 
+
+Compiler: 6
+
+ 
+
+The default location for Microsoft Visual C++ 2008 SP1 compilers is C:/Program Files/Microsoft Visual Studio 9.0,
+
+but that directory does not exist on this machine. 
+
+ 
+
+Use C:/Program Files/Microsoft Visual Studio 9.0 anyway [y]/n? n
+
+Please enter the location of your compiler: [C:/Program Files/Microsoft Visual Studio 9.0] e:/Program Files/Microsoft Visual Studio 9.0（该红色部分换成你的vs所安装的地址）
+
+Please verify your choices:
+
+ 
+
+Compiler: Microsoft Visual C++ 2008 SP1 
+
+Location: e:/Program Files/Microsoft Visual Studio 9.0
+
+ 
+
+Are these correct [y]/n? y
+ 
+
+Trying to update options file: C:/Users/Administrator/AppData/Roaming/MathWorks/MATLAB/R2009a/compopts.bat
+
+From template:              E:/PROGRA~1/MATLAB/R2009a/bin/win32/mbuildopts/msvc90compp.bat
+
+ 
+
+Done . . .
+
+ 
+1.2 DLL的生成
+
+首先新建一个m文件，文件名为myadd2.m,定义了一个名为myadd2的函数，代码如下：
+
+//////////////////////////////////////////////////////
+
+function [y,z] = myadd2(a, b)
+% dummy function, just to demonstrate the idea
+y = a+b;
+z = a+2*b;
+end
+
+/////////////////////////////////////
+
+在MATLAB命令框中输入以下命令：
+
+mcc -W cpplib:libmyadd2 -T link:lib myadd2.m
+
+ 
+
+生成libmyadd2.lib, libmyadd2.h, libmyadd2.dll 等文件，将这三个文件拷到VS的项目目录下
+
+ 
+2. VS调用DLL
+2.1 新建一个项目，并设置环境
+
+新建一个win32 控制台应用程序，我取的名字是matlabDll2.当然新建其他的项目类型也可以，我这只是个例子。接下来进行配置，在该项目的属性中进行了配置，只对该项目有效。若建新的项目需要重新配置。项目建好后将libmyadd2.lib, libmyadd2.h, libmyadd2.dll拷贝到项目目录下。
+
+首先配置项目属性页/配置属性/C-C++/常规/附加包含目录，请根据自己电脑上软件的安装位置对照设置，2008与2005不同的地方这里要加两个目录，如下图所示：
+..\MATLAB\R2009a\extern\include
+..\MATLAB\R2009a\extern\include\win32
+其次配置项目属性页/配置属性/链接器/常规/附加库目录，请根据自己电脑上软件的安装位置对照设置，如下图所示：
+..\MATLAB\R2009a\extern\lib\win32\microsoft
+然后配置项目属性页/配置属性/链接器/输入/附加依赖性，填入libmyadd2.lib mclmcrrt.lib mclmcr.lib
+
+在这一步俺可吃了大苦头了，有篇文档只说添加前两项，俺就照做了，结果导致运行失败，找了好长时间也没发现错误，两天的功夫都在找，结果就是因为少填了这一项，还有其他的一些包含lib，比如libmex.lib  libmx.lib ,这里没填，好像是VC6上要配的。
+
+配置到此结束
+2.2 编写主程序,调试运行
+
+这段代码是从别处拷来的，是一段完整代码，将它粘到matlabDLL2.cpp 主CPP文件中，调试通过：
+
+//////////////////////////////////////////////////////////////////////////////////
+
+#include "stdafx.h"
+#include <iostream>
+#include "mclmcr.h"
+#include "mclcppclass.h"
+#include "libmyadd2.h"
+
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+
+        std::cout << "Hello world!" << std::endl;
+        /* Initialize the MCR */
+       /* if( !mclInitializeApplication(NULL,0) )
+        {
+                std::cout << "Could not initialize the application!" << std::endl;
+                return -1;
+        } */
+
+        // initialize lib
+        if( !libmyadd2Initialize())
+        {
+                std::cout << "Could not initialize libmyadd2!" << std::endl;
+                return -1;
+        }
+
+        try
+        {
+        // declare and initialize a
+        mwArray a(2, 2,  mxDOUBLE_CLASS);
+        double *aData;
+        aData = new double[4];
+        int i;
+        for( i=0; i<4; ++i)
+        {
+                aData[i] = 1.0*i;
+        }
+        // print output
+        std::cout << "a = " << std::endl;
+        std::cout << aData[0] << ",/t" << aData[1] << std::endl;
+        std::cout << aData[2] << ",/t" << aData[3] << std::endl;
+
+        a.SetData(aData, 4);
+
+        // declare and initialize b
+        mwArray b(2, 2,  mxDOUBLE_CLASS);
+        b(1,1) = 11.;
+        b(1,2) = 12.;
+        b(2,1) = 21.;
+        b(2,2) = 22.;
+
+        mwArray y(2, 2,  mxDOUBLE_CLASS);
+        mwArray z(2, 2,  mxDOUBLE_CLASS);
+
+        // call the function
+                myadd2(2, y, z, a, b);
+
+        // copy data from mwArray to C++ objects
+
+        // allocate outputs
+        double *yData, *zData;
+        yData = new double[4];
+        if( yData == NULL )
+        {
+                std::cout << "Failed to allocate memory for yData!" << std::endl;
+                return -1;
+        }
+
+        zData = new double[4];
+        if( zData == NULL )
+        {
+                std::cout << "Failed to allocate memory for zData!" << std::endl;
+                return -1;
+        }
+
+        // copy data from mwArray to C++
+        y.GetData(yData, 4);
+        z.GetData(zData, 4);
+
+        // print output
+        std::cout << "y = " << std::endl;
+        std::cout << yData[0] << ",/t" << yData[1] << std::endl;
+        std::cout << yData[2] << ",/t" << yData[3] << std::endl;
+
+        std::cout << "z = " << std::endl;
+        std::cout << zData[0] << ",/t" << zData[1] << std::endl;
+        std::cout << zData[2] << ",/t" << zData[3] << std::endl;
+
+        
+        // deallocate memory
+        delete [] aData;
+        delete [] zData;
+        delete [] yData;
+        }
+        catch( const mwException& e)
+        {
+          std::cerr << e.what() << std::endl;
+                  
+        }
+        // terminate the lib
+        libmyadd2Terminate();
+
+        // terminate MCR
+        mclTerminateApplication();
+
+
+        return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+

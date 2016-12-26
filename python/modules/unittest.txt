@@ -1,0 +1,340 @@
+1，Unittest模块简介
+
+unittest是python单元测试框架，又叫做PyUnit。之所以称为框架是它代替开发人员完成了一些调用、IO等与单元测试无直接关系的支撑代码，让开发人员可以专注与测试用例的编写，简化单元测试工作。
+2，测试用例1
+
+    #FileName: ut_target.py  
+    class EqualToZero(Exception):  
+        pass  
+    class SplitZero(object):  
+        def splitzero(self, num):  
+            if num > 0:  
+                return "num is bigger than zero"  
+            elif num < 0:  
+                return "num is smaller than zero"  
+            else:  
+                raise EqualToZero  
+
+
+    #FileName: utest.py  
+    from ut_target import SplitZero, EqualToZero  
+    import unittest  
+       
+    class SzTestCase(unittest.TestCase):  
+        def setUp(self):  
+            print "test start"  
+        def tearDown(self):  
+            print "test stop"  
+        def testSzBig(self):  
+            num = 10  
+            sz = SplitZero()  
+            self.assertEqual(sz.splitzero(num),"num is bigger than zero")  
+        def testSzSmall(self):  
+            num = -10  
+            sz = SplitZero()  
+            self.assertEqual(sz.splitzero(num),"num is smaller than zero")  
+        def testSzEqual(self):  
+            num = 0  
+            sz = SplitZero()  
+            self.assertRaises(EqualToZero, sz.splitzero, num)  
+       
+    if __name__ == "__main__":  
+        unittest.main()  
+
+
+执行 python utest.py -v
+
+    [admin@r42h06016.xy2.aliyun.com]$python utest.py  -v  
+    testSzBig (__main__.SzTestCase) ... test start  
+    test stop  
+    ok  
+    testSzEqual (__main__.SzTestCase) ... test start  
+    test stop  
+    ok  
+    testSzSmall (__main__.SzTestCase) ... test start  
+    test stop  
+    ok  
+      
+    ----------------------------------------------------------------------  
+    Ran 3 tests in 0.000s  
+      
+    OK  
+
+
+3，测试用例2
+
+    #Rectangle.py  
+      
+    class Rectangle:  
+        def __init__(self,length,width):  
+            self.length = length  
+            self.width = width  
+      
+        def girth(self):  
+            return 2*(self.length+self.width)  
+      
+        def area(self):  
+            return self.length*self.width  
+
+    #pytest.py   
+    from Rectangle import Rectangle  
+    import unittest  
+      
+    class RectangleTestCase(unittest.TestCase):  
+        def setUp(self):  
+            self.rectangle = Rectangle(10,5)  
+      
+        def tearDown(self):  
+            self.rectangle = None  
+      
+        def testGirth(self):  
+            self.assertEqual(self.rectangle.girth(), 30)  
+      
+        def testArea(self):  
+            self.assertEqual(self.rectangle.area(), 100)  
+      
+    def suite():  
+        suite = unittest.TestSuite()  
+        suite.addTest(RectangleTestCase("testGirth"))  
+        suite.addTest(RectangleTestCase("testArea"))  
+        return suite  
+      
+    if __name__ == "__main__":  
+        unittest.TextTestRunner().run(suite())  
+
+
+运行结果如下：
+    [admin@r42h06016.xy2.aliyun.com]$python pytest.py -v  
+    .F  
+    ======================================================================  
+    FAIL: testArea (__main__.RectangleTestCase)  
+    ----------------------------------------------------------------------  
+    Traceback (most recent call last):  
+      File "pytest.py", line 17, in testArea  
+        self.assertEqual(self.rectangle.area(), 100)  
+    AssertionError: 50 != 100  
+      
+    ----------------------------------------------------------------------  
+    Ran 2 tests in 0.000s  
+      
+    FAILED (failures=1)  
+
+
+
+4，unittest基本使用方法
+1.import unittest
+2.定义一个继承自unittest.TestCase的测试用例类
+3.定义setUp和tearDown，在每个测试用例前后做一些辅助工作。
+4.定义测试用例，名字以test开头。
+5.一个测试用例应该只测试一个方面，测试目的和测试内容应很明确。主要是调用assertEqual、assertRaises等断言方法判断程序执行结果和预期值是否相符。
+6.调用unittest.main()启动测试
+7.如果测试未通过，会输出相应的错误提示。如果测试全部通过则不显示任何东西，这时可以添加-v参数显示详细信息。
+
+
+单元测试作为任何语言的开发者都应该是必要的，因为时隔数月后再回来调试自己的复杂程序时，其实也是很崩溃的事情。虽然会很快熟悉内容，但是修改和调试将是一件痛苦的事情，如果你在修改了代码后出现问题的话，而单元测试可以帮助我们很快准确的定位到问题的位置，出现问题的模块和单元。所以这是一件很愉快的事情，因为我们知道其它修改或没有修改的地方仍然是正常工作的，而我们目前的唯一问题就是搞定眼前这个有点问题的“家伙”。所以工作会在轻松中开始，并且很快将会结束，因为你已经知道很多信息了。
+
+ 
+
+单元测试自然是对程序中最小的可测试模块--函数来进行测试；因为单元测试的对象是函数，也就是说你得被测试对象一定要有输出结果，哪怕就是异常输出，也得有输出，以便单元测试模块能够捕获返回值，并且与预期值进行比较，从而得出测试通过与否。
+
+ 
+
+单元测试的加载方式有2种：一种是通过unittest.main()来启动单元测试的测试模块；一种是添加到testsuite集合中再加载所有的被测试对象，而testsuit里存放的就是单元测试的用例，下面分别列出了2种方法的使用。
+
+1.1 测试模块中的函数：
+
+被测模块：
+    #!/usr/bin/env python  
+    #encoding: utf-8  
+          
+    def sum( x, y):  
+            return x+y  
+          
+          
+    def sub( x, y):  
+            return x-y   
+
+单元测试模块：
+    #!/usr/bin/env python  
+    #encoding: utf-8  
+      
+    import unittest  
+    import myclass  
+      
+    class mytest(unittest.TestCase):  
+          
+        ##初始化工作  
+        def setUp(self):  
+            pass  
+          
+        #退出清理工作  
+        def tearDown(self):  
+            pass  
+          
+        #具体的测试用例，一定要以test开头  
+        def testsum(self):  
+            self.assertEqual(myclass.sum(1, 2), 2, 'test sum fail')  
+              
+              
+        def testsub(self):  
+            self.assertEqual(myclass.sub(2, 1), 1, 'test sub fail')     
+              
+              
+    if __name__ =='__main__':  
+        unittest.main()  
+
+测试结果：【F表示一个fail， F前的点表示一个通过，有E的话表示程序自身异常】
+[python] view plaincopy
+
+    .F  
+    ======================================================================  
+    FAIL: testsum (__main__.mytest)  
+    ----------------------------------------------------------------------  
+    Traceback (most recent call last):  
+      File "C:\Users\xiaowu\workspace\mypython\unitTest.py", line 19, in testsum  
+        self.assertEqual(myclass.sum(1, 2), 2, 'test sum fail')  
+    AssertionError: test sum fail  
+      
+    ----------------------------------------------------------------------  
+    Ran 2 tests in 0.001s  
+      
+    FAILED (failures=1)  
+
+1.2 测试模块类中的函数：
+
+被测模块：
+    #!/usr/bin/env python  
+    #encoding: utf-8  
+      
+    class myclass:  
+        def __init__(self):  
+            pass  
+          
+          
+        def sum(self, x, y):  
+            return x+y  
+          
+          
+        def sub(self, x, y):  
+            return x-y   
+
+单元测试模块：
+    #!/usr/bin/env python  
+    #encoding: utf-8  
+      
+    import unittest  
+    import myclass  
+      
+    class mytest(unittest.TestCase):  
+          
+        ##初始化工作  
+        def setUp(self):  
+            self.tclass = myclass.myclass()   ##实例化了被测试模块中的类  
+          
+        #退出清理工作  
+        def tearDown(self):  
+            pass  
+          
+        #具体的测试用例，一定要以test开头  
+        def testsum(self):  
+            self.assertEqual(self.tclass.sum(1, 2), 3)  
+              
+              
+    if __name__ =='__main__':  
+        unittest.main()  
+
+运行结果：  
+    ----------------------------------------------------------------------  
+    Ran 1 test in 0.000s  
+      
+    OK  
+
+这种方式执行单个测试文件时使用-v参数可以获得更多的测试结果信息。如：mytest.py -v 
+
+ 
+
+2 加载测试套件
+
+好吧，在运用测试套件进行单元测试之前，我想还是稍微研究一下unittest模块的内容有哪些，其大概的运行方式是什么样的。而后在给出根据各种情况如何制定单元测试套件。
+
+首先，自然是查看unittest模块有哪些成员啦！
+[python] view plaincopy
+
+    >>import unittest  
+    >>dir(unittest)  
+    ['FunctionTestCase', 'TestCase', 'TestLoader', 'TestProgram', 'TestResult', 'Tes  
+    tSuite', 'TextTestRunner', '_CmpToKey', '_TextTestResult', '_WritelnDecorator',  
+    '__all__', '__author__', '__builtins__', '__doc__', '__email__', '__file__', '__  
+    metaclass__', '__name__', '__package__', '__unittest', '__version__', '_makeLoad  
+    er', '_strclass', 'defaultTestLoader', 'findTestCases', 'getTestCaseNames', 'mai  
+    n', 'makeSuite', 'os', 'sys', 'time', 'traceback', 'types']  
+
+可以看到其自身的成员也不是很多，大概包括有：
+['FunctionTestCase', 'TestCase', 'TestLoader', 'TestProgram', 'TestResult',
+ 'TestSuite','TextTestRunner', '_CmpToKey', '_TextTestResult', '_WritelnDecorator',
+ 'defaultTestLoader','findTestCases', 'getTestCaseNames', 'main', 'makeSuite']
+ 
+ 好吧,我们大概看看具体都是干什么的
+[python] view plaincopy
+
+    >>memblist = ['FunctionTestCase', 'TestCase', 'TestLoader', 'TestProgram', 'TestResult',\  
+    'TestSuite','TextTestRunner', 'defaultTestLoader','findTestCases', 'getTestCaseNames', \  
+    'main', 'makeSuite']  
+    >>for memb in memblist:  
+    ..  cur = getattr(unittest, memb)  
+    ..  print help(cur)  
+
+ 'FunctionTestCase':函数测试用例，即给一个函数作为参数，返回一个testcase实例，可选参数有set-up，tear-down方法
+ 'TestCase'：所有测试用例的基本类，给一个测试方法的名字，返回一个测试用例实例
+ 'TestLoader'：测试用例加载器，其包括多个加载测试用例的方法。返回一个测试套件
+ loadTestsFromModule(self, module)--根据给定的模块实例来获取测试用例套件
+ loadTestsFromName(self, name, module=None)
+ --根据给定的字符串来获取测试用例套件，字符串可以是模块名，测试类名，测试类中的测试方法名，或者一个可调用的是实例对象
+ 这个实例对象返回一个测试用例或一个测试套件
+ loadTestsFromNames(self, names, module=None) --和上面功能相同，只不过接受的是字符串列表
+ loadTestsFromTestCase(self, testCaseClass)--根据给定的测试类，获取其中的所有测试方法，并返回一个测试套件
+'TestProgram'：命令行进行单元测试的调用方法，作用是执行一个测试用例。其实unittest.main()方法执行的就是这个命令，
+而这个类实例时默认加载当前执行的作为测试对象，
+原型为 __init__(self, module='__main__', defaultTest=None, argv=None, testRunner=xx, testLoader=xx)
+其中module='__main__'就是默认加载自身
+'TestResult'：测试用例的结果保存实例，通常有测试框架调用
+ 'TestSuite'：组织测试用例的实例，支持测试用例的添加和删除，最终将传递给testRunner进行测试执行
+ 'TextTestRunner'：进行测试用例执行的实例，其中Text的意思是以文本形式显示测试结果。显示测试名称，即完成的测试结果，其过同执行单元测试脚本时添加-v参数
+ 'defaultTestLoader':其实就是TestLoader
+ 'findTestCases', 'getTestCaseNames'：这个2个就不用解释了
+ 'main': 其实就是TestProgram
+ 'makeSuite'：通常是由单元测试框架调用的，用于生产testsuite对象的实例
+ 
+ 至此，我们知道了。其实整个单元测试框架的逻辑出来了。分三步走：第一步testloader根据传入的参数获得相应的测试用例，即对应具体的测试方法，
+ 然后makesuite在把所有的测试用例组装成testsuite，最后把testsiute传给testrunner进行执行。
+ 而我们通常执行的unittest.main()，其实就是unittest.testprom方法，其执行的功能就是上面分析的三步，在第一步中其传入的参数是自身的模块__main__；
+ 在第二步中把自身模块中的所有测试类中中的测试方法提取出来，并生成测试套件；最后再把测试套件传递给testrunner进行具体的测试。
+ 
+ 最后给出一个完整的单元测试组织代码，把该代码放到单元测试用例文件的同一个目录后执行该脚本，即可执行所有的测试用例文件。
+ 【测试用例文件必须为test开头，如：testxxx.py, 当然这个文件本身是一个单元测试的文件】
+[python] view plaincopy
+
+    #!/usr/bin/env python  
+    #encoding: utf-8  
+    #该代码源自深入python  
+    import unittest  
+    import myclass  
+    import re  
+    import os  
+    import sys  
+      
+      
+    def testAllinCurrent():  
+        path = os.path.abspath(os.path.dirname(sys.argv[0]))     
+        files = os.listdir(path)                                 
+        test = re.compile("test\.py{1}quot;, re.IGNORECASE)            
+        files = filter(test.search, files)                       
+        filenameToModuleName = lambda f: os.path.splitext(f)[0]  
+        moduleNames = map(filenameToModuleName, files)           
+        modules = map(__import__, moduleNames)     
+                        
+        load = unittest.defaultTestLoader.loadTestsFromModule    
+        return unittest.TestSuite(map(load, modules))  
+      
+    if __name__ == "__main__":                     
+        unittest.main(defaultTest="regressionTest")  
