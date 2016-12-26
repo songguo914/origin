@@ -1,0 +1,36 @@
+
+python从文件外部调用参数
+    <span style="font-size:24px;">#!/usr/bin/python  
+    # FileName: GetArgvOutside.py  
+      
+    if __name__=="__main__":  
+        import sys  
+      
+        if len(sys.argv)==1:  
+            print "need argv"  
+        else:  
+            print sys.argv  
+      
+        for i in sys.argv:  
+            print i  
+    </span>  
+
+
+    <span style="font-size:24px;">E:\>python GetArgvOutside.py  arg1 arg2  
+    ['GetArgvOutside.py', 'arg1', 'arg2']  
+    GetArgvOutside.py  
+    arg1  
+    arg2  
+      
+    E:\>  
+    </span>  
+
+
+代码说明问题：
+
+1   python程序外部参数通过sys.argv传入，sys.argv为list。
+
+2   sys.argv第一项为程序文件的名称，后面的一次为参数列表
+
+
+setup.py打包软件可以借助sys.argv传参

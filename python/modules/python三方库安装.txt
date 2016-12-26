@@ -1,0 +1,202 @@
+﻿
+python的第三方包的安装方法以其常用第三方库
+
+	分类： python开发
+
+第一种基本安装方法
+
+1 下载第三方包，解压
+
+2 在命令提示符里输入cmd，然后用cd进入到第三方包的路径下
+
+3 输入python setup.py build
+
+4 输入python setup.py install
+
+看到包内的文件在安装即可……
+
+
+第二种 用pip和virtualenv安装
+
+
+pip可以很方便的安装、卸载和管理Python的包。
+virtualenv则可以建立多个独立的虚拟环境，各个环境中拥有自己的python解释器和各自的package包，互不影响。
+pip和virtualenv可以很好的协同工作，同时使用这两个工具非常方便。
+
+一般先安装pip，安装好后，pip install virtualenv就可以自动从网上下载并安装virtualenv了。然后virtualenv env1就可以创建一个名为env1的虚拟环境了，进入这个虚拟环境后，再使用pip install安装其它的package就只会安装到这个虚拟环境里，不会影响其它虚拟环境或系统环境。
+
+当需要将虚拟环境env1迁移或复制到另一个虚拟环境（可能不在同一台机器上）env2时，首先仍然需要在目的机器上安装pip和virtualenv，然后采用以下方法之一安装其他的package：
+
+    1.直接将env1里的文件全部复制到env2里，然后修改涉及路径的文件。此种方法可能正常使用，但显然不是好办法。
+    2.进入原虚拟环境env1，然后执行pip freeze > requirements.txt将包依赖信息保存在requirements.txt文件中。然后进入目的虚拟环境env2，执行pip install -r requirements.txt，pip就会自动从网上下载并安装所有包。
+    3.pip默认会从pypi服务器（http://pypi.python.org/simple）下载包的安装文件，如果目的机器无法连外网，则可以采用以下办法：
+        3.1搭建自己的pypi服务器。专业的，可以使用第三方的软件包来搭建一个完整的pypi镜像服务器，参考http://www.worldhello.net/2011/03/14/2357.html。更快速的方法只需要一条命令python -m SimpleHTTPServer即可完成搭建服务器，具体的目录结构可参考原pypi服务器，简而言之，就是把安装文件打包放入目录即可。搭建好服务器之后，在目的虚拟环境中，就可以使用pip来安装了，命令如：pip install -i http://127.0.0.1:8000/ -r requirements.txt
+        3.2如果你实在不想搭建pypi服务器，也有办法。首先将所有包的安装文件下载下来，可以手动下载，也可以使用pip，如pip install -d /path/to/save/ -r requirements.txt，然后自己修改requirements.txt文件，将每一行改成对应的包的安装文件的路径。最后在目的虚拟环境中使用pip安装，如pip install -r requirements.txt即可。
+        3.3还有一种途径，就是pip提供的bundle选项。首先执行pip bundle MyEnv.pybundle -r requirements.txt，将生成一个MyEnv.pybundle文件，该文件夹包含所有包的安装文件（注意必须后缀名必须是.pybundle），默认是重新从pypi服务器下载安装文件的，如果愿意，也可以利用3.1中的方法，指定本地的pypi服务器。然后在目的虚拟环境中执行pip install MyEnv.pybundle即可。
+    4.pip install还有许多有用的选项，如--download-cache=DIR可以指定下载安装文件时缓存至DIR路径，下次需要时则直接读取缓存文件。具体选项可以执行pip help install得到详细信息。
+    5.另外，还可以将自己的包上传至pypi服务器，分享给所有人。具体可参考http://guide.python-distribute.org/creation.html和http://matrix.42qu.com/10734668。
+
+
+easy_install简介：
+
+easy_install是由PEAK(Python Enterprise Application Kit)开发的setuptools包里带的一个命令，所以使用easy_install实际上是在调用setuptools来完成安装模块的工作。 Perl 用户比较熟悉 CPAN，而 Ruby 用户则比较熟悉 Gems；引导 setuptools 的ez_setup工具和随之而生的扩展后的easy_install 与 “Cheeseshop”（Python Package Index，也称为 “PyPI”）一起工作来实现相同的功能。它可以很方便的让您自动下载，编译，安装和管理Python包。
+
+ 
+
+第三种 用Setuptools和virtualenv安装
+
+Setuptools简介：
+
+         setuptools是 Python Enterprise Application Kit（PEAK）的一个副项目，它 是一组Python的distutilsde工具的增强工具(适用于 Python 2.3.5 以上的版本，64 位平台则适用于 Python 2.4 以上的版本)，可以让程序员更方便的创建和发布 Python 包，特别是那些对其它包具有依赖性的状况。
+
+   经常接触Python的同学可能会注意到，当需要安装第三方python包时，可能会用到easy_install命令。easy_install是由PEAK(Python Enterprise Application Kit)开发的setuptools包里带的一个命令，所以使用easy_install实际上是在调用setuptools来完成安装模块的工作。
+
+ 
+
+Setuptools安装：
+
+A． 使用ez_setup.py安装
+
+这是 setuptools 自豪的一种安装方式，只需要一个大约 8K 作为的脚本ez_setup.py，就能自动为用户安装包括 setuptools 自身在内的许多 Python 包。
+
+(参考：http://bkeep.blog.163.com/blog/static/12341429020123395532879/)
+
+使用这种方式，用户只需要下载 ez_setup.py 并运行，就可以自动下载和安装适合用户当前 Python 版本的适当的 setuptools egg 文件(当然，用户需要 Python 2.3.5 以上的版本，64 位操作系统的用户则需要 Python 2.4 以上的版本)。此外，这段脚本还会将可执行的easy_install 脚本安装到用户所有的操作系统 Python 可执行脚本正常应该安装的位置(例如，Windows 用户会安装到 Python 安装目录下的 Scripts 目录中)。关于这种安装方法的更详细说明和注意事项，请参考其官方说明（见扩展阅读）。简单的安装命令如下：
+
+wget -q ez_setup.py下载地址（见扩展阅读） 安装完后，最好确保
+
+B． 使用完整的安装包安装
+
+当然，用户也可以使用 setuptools 在 Python Cheese Shop 上发布的合适的完整的发布版本来安装。对于使用 Windows 的用户，这也是挺方便的方法。
+
+ 
+
+下载完成后双击执行安装文件，即可在D:\Program Files\python2.7\scripts下安装easy_install。包含一个easy_install.exe，然后进行环境变量设置，在系统环境变量中做如下设置：
+
+(也就是将D:\Program Files\python2.7\scripts添加到环境变量中）
+
+许多 Linux 发行版的官方包管理仓库都包含 setuptools 的某个版本。例如，如果你跟我一样使用Ubuntu ，那安装 setuptools 只是简单的进行如下操作：
+
+# apt-get install python-setuptools
+
+ 
+
+ 
+
+         Setuptools安装好后就可以用easy_install安装模块了
+
+ 
+
+easy_install 使用方法：
+
+    使用方法非常简单，在命令行输入“easy_install 参数”即可。
+
+　　a、通过模块名称来安装。setuptools会自动搜索PyPI 以查找最新版本的模块。如果找到的话，她会自动下载、编译和安装：例如
+
+　　easy_install SQLObject
+
+　　easy_install "python_dateutil==1.5"
+
+　　easy_install "python_dateutil>=1.5"
+
+　　说明，安装过程可能需要权限，如果是ubuntu的话，可以加上sudo
+
+　　b、指定查找页面（"download page"）来使用名称和版本信息来安装或升级一个模块:
+
+　　easy_install -f (此处添加一个url,百科不让加) SQLObject
+
+　　c、从指定模块下载地址来下载模块源码并在下载成功之后编译安装
+
+　　easy_install (此处添加一个模块下载url,百科不让加，可参考扩展阅读)
+
+　　d、在本地已经存在的egg文件基础上来安装模块
+
+　　easy_install /my_downloads/OtherPackage-3.2.1-py2.3.egg
+
+　　e、升级一个已经安装的模块到最新版本，如果在PyPI中这个模块有最新版本。
+
+　　easy_install --upgrade PyProtocols
+
+　　f、从源码中安装模块（源码已经下载并解压到当前文件夹下）(New in 0.5a9)
+
+　　easy_install .
+
+　　g、模块卸载 easy_install -m package-name （比如easy_install -m pylab)
+
+　　如果想删除通过easy_install安装的软件包，比如说：MySQL-python，可以执行命令：
+
+　　easy_install -m MySQL-python
+
+注：此操作会从easy-install.pth文件里把MySQL-python的相关信息抹去，剩下的egg文件，你可以手动删除。
+
+ 
+
+用easy_install安装networkx：
+
+  
+
+ 
+
+如果用方法a安装，显示download error，可转用其它方法，如d。
+
+安装完毕，进行测试。
+
+打开python-command line,进行如图输入“import networkx as nx” "print nx"，就有相关显示，如果没有成功，会提示不认识networkx类库的
+
+  
+
+ 
+
+开发环境为eclipse的用户，安装一个新的python开发包后，import后不能使用包内的方法。
+
+解决方法：
+
+需要在Preferences-pyDev-Interpreter里重新配置Python的编译器，因为当前没有包含新加进来的包
+
+可以删除掉，重新加上。
+
+否则会导致import模块后，模块内的方法仍然不能调用。
+
+ 
+
+参考资料：http://www.cnblogs.com/zhuyp1015/archive/2012/07/17/2596495.html
+
+http://blog.csdn.net/moodytong/article/details/7282008
+
+http://blog.163.com/yang_jianli/blog/static/161990006201151022355502/
+
+http://www.cnblogs.com/kkgreen/archive/2012/08/03/2622251.html
+ 常用的第三方库
+
+如果说强大的标准库奠定了python发展的基石，丰富的第三方库则是python不断发展的保证，随着python的发展一些稳定的第三库被加入到了标准库里面，这里有6000多个第三方库的介绍：点这里或者访问：http://pypi.python.org/pypi?:action=index。下表中加粗并且标红的都是我平时使用较多的一些第三方库。（P.S.CSDN的这个表格功能太难用了，改HTML代码调整了好半天啊，才见得人！）
+
+常用Python第三方库
+分类 	库名称 	库用途
+Web框架 	Django 	开源web开发框架，它鼓励快速开发,并遵循MVC设计，我以前用过很多次，比较好用，开发周期短
+ActiveGrid 	企业级的Web2.0解决方案
+Karrigell
+\bottle\bootstrap\
+Flask  
+	简单的Web框架，自身包含了Web服务，py脚本引擎和纯python的数据
+库PyDBLite
+webpy 	一个小巧灵活的Web框架，虽然简单但是功能强大
+CherryPy 	基于Python的Web应用程序开发框架
+Pylons 	基于Python的一个极其高效和可靠的Web开发框架
+Zope 	开源的Web应用服务器
+TurboGears 	基于Python的MVC风格的Web应用程序框架
+Twisted 	流行的网络编程库，大型Web框架
+Quixote 	Web开发框架
+科学计算 	Matplotlib 	用Python实现的类matlab的第三方库，用以绘制一些高质量的数学二维图形
+SciPy 	基于Python的matlab实现，旨在实现matlab的所有功能
+NumPy 	基于Python的科学计算第三方库，提供了矩阵，线性代数，傅立叶变换等等的解决方案
+GUI 	PyGtk 	基于Python的GUI程序开发GTK 库
+PyQt 	用于Python的QT开发库
+WxPython 	Python下的GUI编程框架，与MFC的架构相似
+Tkinter 	Python下标准的界面编程包，因此不算是第三方库了o(∩_∩)o 
+其它 	BeautifulSoup 	基于Python的HTML/XML解析器，简单易用
+PIL 	基于Python的图像处理库，功能强大，对图形文件的格式支持广泛
+MySQLdb 	用于连接MySQL数据库
+cElementTree 	高性能XML解析库，Py2.5应该已经包含了该模块，因此不算一个第三方库了
+PyGame 	基于Python的多媒体开发和游戏软件开发模块
+Py2exe 	将python脚本转换为windows上可以独立运行的可执行程序
+pefile 	Windows PE文件解析器

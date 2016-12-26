@@ -1,0 +1,191 @@
+ py2exe使用方法
+一、简介
+
+py2exe是一个将python脚本转换成windows上的可独立执行的可执行程序(*.exe)的工具，这样，你就可以不用装python而在windows系统上运行这个可执行程序。
+
+py2exe已经被用于创建wxPython,Tkinter,Pmw,PyGTK,pygame,win32com client和server,和其它的独立程序。py2exe是发布在开源许可证下的。
+
+二、安装py2exe
+
+从http://prdownloads.sourceforge.net/py2exe下载并运行与你所安装的Python对应的py2exe版本的installer，这将安装py2exe和相应的例子；这些例子被安装在lib\site-packages\py2exe\samples目录下。
+
+三、py2exe的用法
+
+如果你有一个名为helloworld.py的python脚本，你想把它转换为运行在windows上的可执行程序，并运行在没有安装python的windows系统上，那么首先你应写一个用于发布程序的设置脚本例如mysetup.py，在其中的setup函数前插入语句import py2exe 。
+mysetup.py示例如下:
+# mysetup.py
+from distutils.core import setup
+import py2exe
+
+setup(console=["helloworld.py"])
+然后按下面的方法运行mysetup.py:
+python mysetup.py py2exe
+上面的命令执行后将产生一个名为dist的子目录，其中包含了helloworld.exe,python24.dll,library.zip这些文件。
+如果你的helloworld.py脚本中用了已编译的C扩展模块，那么这些模块也会被拷贝在个子目录中，同样，所有的dll文件在运行时都是需要的，除了系统的dll文件。
+dist子目录中的文件包含了你的程序所必须的东西，你应将这个子目录中的所有内容一起发布。
+
+默认情况下，py2exe在目录dist下创建以下这些必须的文件：
+1、一个或多个exe文件。
+2、python##.dll。 
+3、几个.pyd文件，它们是已编译的扩展名，它们是exe文件所需要的；加上其它的.dll文件，这些.dll是.pyd所需要的。
+4、一个library.zip文件，它包含了已编译的纯的python模块如.pyc或.pyo
+上面的mysetup.py创建了一个控制台的helloword.exe程序，如果你要创建一个图形用户界的程序，那么你只需要将mysetup.py中的console=["helloworld.py"]替换为windows=["myscript.py"]既可。
+
+py2exe一次能够创建多个exe文件，你需要将这些脚本文件的列表传递给console或windows的关键字参数。如果你有几个相关联的脚本，那么这是很有用的。
+运行下面个命令，将显示py2exe命令的所有命令行标记。
+python mysetup.py py2exe --help
+
+四、指定额外的文件
+一些应用程序在运行时需要额外的文件，诸如配置文件、字体、位图。
+如果在安装脚本中用data_files可选项指定了那些额外的文件，那么py2exe能将这些文件拷贝到dist子目录中。data_files应包含一个元组(target-dir, files)列表，其中的files是这些额外的文件的列表。
+示例如下：
+# mysetup.py
+from distutils.core import setup
+import glob
+import py2exe
+
+setup(console=["helloworld.py"],
+      data_files=[("bitmaps",
+                   ["bm/large.gif", "bm/small.gif"]),
+                  ("fonts",
+                   glob.glob("fonts\\*.fnt"))],
+)
+说明：data_files选项将创建一个子目录dist\bitmaps，其中包含两个.gif文件；一个子目录dist\fonts，其中包含了所有的.fnt文件。
+
+五、Windows NT services
+
+你可以通过传递一个service关键字参数给setup函数来建造Windows NT services
+,这个service参数的值必须是一个Python模块名(包含一service类)的列表。
+示例如下：
+# mysetup.py
+from distutils.core import setup
+import py2exe
+
+setup(service=["MyService"])
+所建造的可执行的service是可以通过在其后跟一定的命令行参数标记来自行安装和卸载的。你可以通过在这个可执行的service(exe)后跟一-help参数来得到更多的帮助。
+六、COM servers
+
+你可以通过传递一个com_server 关键字参数给setup函数来建造Windows NT services
+,这个service参数的值必须是一个Python模块名(包含一个或多个COM server 类)的列表。
+示例如下：
+# mysetup.py
+from distutils.core import setup
+import py2exe
+
+setup(com_server=["win32com.server.interp"])
+默认情况下，DLL和EXE servers被建造，你不需要它们的话你可以简单的删除它们。
+
+
+py2exe补充学习一：
+2. 打包文件本身其实也是一个python的程序,虽然一般只有一个setup函数.此函数可以有 name,description,version,console,windows,options,data_files 等参数. 
+3. 要生成一个或多个命令行的exe,setup需要一个List型的名为console参数,指名源py文件. 
+4.要生成一个或多个GUI的exe,setup需要一个List型的名为windows参数,指名源py文件.List的每项都可以有图标等选项,就是icon_resources哪里,图标也是个Tuple的List,但是windows一般只会显示出第一个图标,所以一个就够了. 
+5. 如果你想用png文件直接当图标,那很可能会在生成exe的时候,引起python崩溃,所以还是赶紧转成ico吧 
+6. 如果你和我一样,生成的GUI的exe文件,在执行的时候,报 ImportError: No module named cairo ,那最好在setup函数里加上options,里面有include cairo的选项. 
+7.如果你也有数据文件(比如glade文件,图片文件等),py2exe默认并不会帮你一起打包,你需要在setup函数中加传data_files参数.data_files需要是一个List,每项可以是直接指向数据文件的字符串,也可以是一个Tuple;如果是前者,数据文件会直接在生成的dist目录下面,如果是后者,Tuple的第一个元素是目标目录,第二个元素是是个源文件名的List,效果是把所有的源文件存放在 dist下的指定的目标目录下.
+8. 在py2exe生成的环境中,__file__这个应用将失效
+9. 好了,现在如果你已经写好了打包文件(win_packer.py),也对源代码进行了应有的修改,你就可以执行 python win_packer.py py2exe 来生成exe了,执行此命令会在当前目录下多出一个 dist 目录,你只要把dist目录复制出来,运行里面的exe,就可以了 
+10.最后,如果你的GUI程序还是运行不了,你还需要手工将你的GTK+安装安装目录(默认是C:\GTK)下的etc和lib目录复制到dist目录
+
+
+py2exe补充学习二：
+Py2exe支持的参数（通过python setup_py2exe.py py2exe --help 可以打印出来，但是这些参数我也没用过，有空再摸索摸索）
+
+
+    Global options:  
+      --verbose (-v)  run verbosely (default)  
+      --quiet (-q)    run quietly (turns verbosity off)  
+      --dry-run (-n)  don't actually do anything  
+      --help (-h)     show detailed help message  
+      
+    Options for 'py2exe' command:  
+      --optimize (-O)       optimization level: -O1 for "python -O", -O2 for  
+                            "python -OO", and -O0 to disable [default: -O0]  
+      --dist-dir (-d)       directory to put final built distributions in (default  
+                            is dist)  
+      --excludes (-e)       comma-separated list of modules to exclude  
+      --dll-excludes        comma-separated list of DLLs to exclude  
+      --ignores             comma-separated list of modules to ignore if they are  
+                            not found  
+      --includes (-i)       comma-separated list of modules to include  
+      --packages (-p)       comma-separated list of packages to include  
+      --compressed (-c)     create a compressed zipfile  
+      --xref (-x)           create and show a module cross reference  
+      --bundle-files (-b)   bundle dlls in the zipfile or the exe. Valid levels  
+                            are 1, 2, or 3 (default)  
+      --skip-archive        do not place Python bytecode files in an archive, put  
+                            them directly in the file system  
+      --ascii (-a)          do not automatically include encodings and codecs  
+      --custom-boot-script  Python file that will be run when setting up the  
+                            runtime environment  
+      
+    usage: setup_py2exe.py [global_opts] cmd1 [cmd1_opts] [cmd2 [cmd2_opts] ...]  
+       or: setup_py2exe.py --help [cmd1 cmd2 ...]  
+       or: setup_py2exe.py --help-commands  
+       or: setup_py2exe.py cmd --help  
+ 
+py2exe补充学习三：
+如果你用的是python2.4或者2.5的话，那么你需要的dll是MSVCR71.dll（Microsoft Visual c 运行库）。这个DLL基本上会已经包含在dist目录中，如果这样的话，你就不需要进行额外的处理。  因为MSVCR71.dll版权归微软，所以你得注意一下版权问题。如果你没有在发行此dll的权利，那么你还是使用Microsoft Visual C++ 2005 Redistributable Package (vcredist_x86.exe)来进行运行环境的安装吧。至于怎么才有版权，这不是我们这里所关心的。  或者你可以为你的程序创建一个安装程序，并将vcredist_x86.exe作为你安装程序的一部分。  
+
+对于python2.6、2.7，你需要的DLL是MSVCR90.dll。py2exe不能自动的将这个DLL包含进dist目录中，所以你必须自己提供。最复杂的情况是，有多个dll版本存在，并且它们的名字都一样。这时你需要选择编译python时使用的版本，将鼠标放在dll上，来确定具体的版本
+
+补充一下，如果要把python编译的所有文件打包到一个exe中，就需要在setup()这个函数中，要设置2个参数：
+options中的bundle_files和zipfile。
+其中bundle_files有效值为：
+3 (默认)不打包。
+2 打包，但不打包Python解释器。
+1 打包，包括Python解释器。
+example:	options = {"py2exe":{"bundle_files": 1}}
+
+zipfile的有效值为:
+不填(默认) 生成一个library.zip文件
+None 把所有东西打包进.exe文件中
+
+贴一个自己写的代码
+#! /usr/bin/env python  
+# -*- coding: utf-8 -*-  
+#安装成windows服务的python脚本 
+#内容： 
+from distutils.core import setup 
+import py2exe 
+
+options = {"py2exe":{"compressed": 1, #压缩   
+        "optimize": 2,  
+        "bundle_files": 1 #所有文件打包成一个exe文件 
+}}    
+
+setup(service=["PyWindowsService"], 
+        options=options, 
+        zipfile=None)
+       
+       
+六、高级，其实也不高级
+ 看那个编译脚本中的这句：setup(console=["HelloPy2exe.py"])，setup还支持很多参数，windows（一个windows界面程序），data_filse（打包其他的文件）……以后再说说。
+      看一个例子先：
+[python] view plaincopy
+
+    # -*- coding: cp936 -*-  
+    from distutils.core import setup  
+    import py2exe  
+      
+    includes = ["encodings", "encodings.*"]  
+      
+    options = {"py2exe":    
+                {"compressed": 1, #压缩    
+                 "optimize": 2,    
+                 "ascii": 1,    
+                 "includes":includes,    
+                 "bundle_files": 1 #所有文件打包成一个exe文件  
+                }}  
+    setup(  
+        version = "2010.11.01.01",
+        description = "this is a py2exe test",
+        name = "HelloGuys.",
+        options=options,    
+        zipfile=None,  
+        console=[{"script": "HelloPy2exe.py", "icon_resources": [(1, "pc.ico")]}],  
+        windows=[{"script": "HelloWin.py", "icon_resources": [(1, "pc.ico")]}],  
+        data_files=[("magic",["App_x86.exe",]),],  
+    )  
+
+      options可以用来指定一些编译的参数，譬如是否压缩，是否打包为一个文件，data_files是一个打包时的拷贝文件列表，格式如下：data_files=[("目的文件夹",["文件名",]), ("目的文件夹",["文件名",]), ("目的文件夹",["文件名",]),]，至于version，description，name等等，你们懂的，icon_resources是指定一个ico图标作为程序的图标。从这里也可以看出windows，console等参数是可以指定一个list来设置参数的。可以去Python安装目录/Lib/site-packages/py2exe/samples下看一些例子，这玩意还可以打包服务程序，com服务器程序等等。
