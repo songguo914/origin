@@ -1,0 +1,2 @@
+1、在HOME目录下执行ctags -R .（.路径不能省略）
+2、在HOME目录下新建.vimrc文件，并输入：set tags=tags;$HOME
