@@ -1,4 +1,6 @@
-﻿
+﻿numpy安装包从这里取：http://www.lfd.uci.edu/~gohlke/pythonlibs/
+
+
 python的第三方包的安装方法以其常用第三方库
 
 	分类： python开发
