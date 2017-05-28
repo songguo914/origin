@@ -1,3 +1,8 @@
+Error: super() argument 1 must be type, not classobj 
+在python2.2版本之前，直接调用超类的方法，后来改成通过super来调用，原因是为了解决多重继承中的钻石形状问题。Python里的super只能用在新式类中，不能用于以前的经典类，如果基类是经典类则会出现这个错误。
+
+
+
 1	以下python用于从文件instance.txt中截取字段：文件instance.txt内容如下：
 !aa
 a1
