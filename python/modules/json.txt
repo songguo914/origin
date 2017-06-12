@@ -1,0 +1,2 @@
+当有中文时，json的使用方式如下：
+json.dumps({1:u"你".encode("utf-8")}, ensure_ascii=False)
