@@ -1,0 +1,88 @@
+在Python2.3之前Python自带反编译的工具,高版本的貌似这个反编译的已经不能用了。
+据说是在Python2.7上最好用的反编译工具uncompyle 代码地址
+http://github.com/gstarnberger/uncompyle
+
+uncompyle2 是一个可以将pyc文件转换为py源码的工具
+下载地址：https://github.com/wibiti/uncompyle2
+
+安装： setup.py install
+
+ 
+
+
+参数：
+
+Usage: uncompyle2 [OPTIONS]... [ FILE | DIR]...
+
+Examples:
+uncompyle2 foo.pyc bar.pyc # decompile foo.pyc, bar.pyc to stdout
+uncompyle2 -o . foo.pyc bar.pyc # decompile to ./foo.dis and ./bar.dis
+uncompyle2 -o /tmp /usr/lib/python1.5 # decompile whole library
+
+Options:
+-o <path> output decompiled files to this path:
+if multiple input files are decompiled, the common prefix
+is stripped from these names and the remainder appended to
+<path>
+uncompyle -o /tmp bla/fasel.pyc bla/foo.pyc
+-> /tmp/fasel.dis, /tmp/foo.dis
+uncompyle -o /tmp bla/fasel.pyc bar/foo.pyc
+-> /tmp/bla/fasel.dis, /tmp/bar/foo.dis
+-s if multiple input files are decompiled, the common prefix
+is stripped from these names and the remainder appended to
+<path>
+uncompyle -o /tmp /usr/lib/python1.5
+-> /tmp/smtplib.dis ... /tmp/lib-tk/FixTk.dis
+-c <file> attempts a disassembly after compiling <file>
+-d do not print timestamps
+-m use multiprocessing
+--py use '.py' extension for generated files
+--norecur don't recurse directories looking for .pyc and .pyo files
+--verify compare generated source with input byte-code
+(requires -o)
+--help show this message
+
+Debugging Options:
+--showasm -a include byte-code (disables --verify)
+--showast -t include AST (abstract syntax tree) (disables --verify)
+
+Extensions of generated files:
+'.pyc_dis' '.pyo_dis' successfully decompiled (and verified if --verify)
+'.py' with --py option
++ '_unverified' successfully decompile but --verify failed
++ '_failed' uncompyle failed (contact author for enhancement)
+
+参数其实就是C:\Python27\Scripts\uncompyle2   文件里面， uncompyle2也是一个py文件但没有py扩展
+
+ 
+
+代码如下：
+复制代码
+
+ 1 #! /usr/bin/env python
+ 2 import os
+ 3 import sys
+ 4                
+ 5 def displayFile(file):
+ 6     unPath= sys.executable
+ 7     unPath=unPath[ 0 : unPath.rfind( os.sep ) ]
+ 8     newname = file[0:file.rfind('.')] + '.py'
+ 9     command = "python -u "+unPath+"\scripts\uncompyle2 " + file + ">" + newname
+10     try:
+11         os.system(command)
+12     except e:
+13         print file
+14     
+15 if __name__ == '__main__':
+16     print 'init'
+17     displayFile('C:\\pycc.pyc')
+18     print 'finished'
+
+复制代码
+
+
+经过测试 反编译后生成的py 执行报错：
+SyntaxError： Non-ASCII character '\xd6' ***** but no encoding declared
+一看就知道是编码问题， 说有在生成的py文件的头部加
+# -*- coding: gbk -*-
+很奇怪，# -*- coding: UTF8 -*- 也会报错
