@@ -1,0 +1,9 @@
+1、numpy查找指定范围内数据及索引的方法：
+import numpy as np
+va=np.array([2,3,4,5,6,2,4])
+va[(va > 3) ==  (va<6)]
+运行结果为：array([4, 5, 4])
+np.where(va==2)
+运行结果为：(array([0, 5], dtype=int64),)
+
+2、
