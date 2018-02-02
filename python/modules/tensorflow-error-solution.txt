@@ -1,0 +1,13 @@
+tensorflow在server或者多线程中运行时可能产生如下错误：
+raise ValueError("Tensor %s is not an element of this graph." % obj)
+解决办法：
+global thread:
+
+        self.model = load_model(model_path)
+        self.model._make_predict_function()
+        self.graph = tf.get_default_graph()
+
+another thread:
+
+        with self.graph.as_default():
+            labels = self.model.predict(data)
