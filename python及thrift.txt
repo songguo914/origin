@@ -1,0 +1,168 @@
+一、thrift框架及python thrift三方包安装
+二、python thrift简单例子
+三、python thrift网络部分介绍
+
+一、thrift框架及python thrift三方包安装
+首先系统要安装thrift，thrift是一个软件框架，用于支持可扩展的跨语言服务的开发，它无缝的与C++，Java，Python，PHP，Ruby，Erlang, Perl, Haskell, C#, Cocoa, JavaScript, Node.js, Smalltalk,以及OCaml等语言结合。它起初是由Facebook开发的，后来开源到Apache Incubator。Thrift支持对象序列化/反序列化以及RPC服务编写。 
+Apache Thrift软件框架用于可扩展的跨语言服务开发，简单来说就是RPC远程调用，它是一个完整的 RPC 框架体系。 
+
+IDL是Interface description language的缩写，指接口描述语言，是CORBA规范的一部分，是跨平台开发的基础。
+IDL通常用于远程调用软件。 在这种情况下，一般是由远程客户终端调用不同操作系统上的对象组件，并且这些对象组件可能是由不同计算机语言编写的。IDL建立起了两个不同操作系统间通信的桥梁。
+
+安装thrift时，只需要安装你需要的语言即可。这可以利用./configure后面接参数得到。
+./configure --help用于查看所有可以使用的参数。
+输入 $ thrift -version命令，查看输出信息判断thrift是否安装成功。
+
+为了python和thrift对接，python自身还需要安装三方包thrift，还可以通过pip install thrift完成。
+
+
+二、python thrift简单例子：
+HelloService.thrift
+service HelloService
+{  
+    void sayHello()  
+    string getData(1:string input)  
+}  
+
+thrift -gen py HelloService.thrift
+即可生成gen-py
+
+
+server.py
+#!/usr/bin/env python  
+  
+import sys, glob  
+from HelloService import HelloService  
+from HelloService.ttypes import *  
+  
+from thrift.transport import TSocket  
+from thrift.transport import TTransport  
+from thrift.protocol import TBinaryProtocol  
+from thrift.server import TServer  
+  
+class HelloServiceHandler:  
+  def __init__(self):  
+    self.log = {}  
+  def func1(self):  
+    print 'func1()'  
+  def sayHello(self):  
+    print 'sayHello'  
+  def getData(self, input):  
+      return input+' from server 1024';  
+  
+handler = HelloServiceHandler()  
+processor = HelloService.Processor(handler)  
+transport = TSocket.TServerSocket(port=9090)  
+tfactory = TTransport.TBufferedTransportFactory()  
+pfactory = TBinaryProtocol.TBinaryProtocolFactory()  
+  
+server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)  
+# You could do one of these for a multithreaded server  
+#server = TServer.TThreadedServer(processor, transport, tfactory, pfactory)  
+#server = TServer.TThreadPoolServer(processor, transport, tfactory, pfactory) 
+#TServer的子类包括：TSimpleServer, TThreadedServer, TThreadPoolServer,
+#        TForkingServer, THttpServer, TNonblockingServer, TProcessPoolServer 
+  
+print 'Starting the server...'  
+server.serve()  
+print 'done.'  
+
+
+client.py
+#!/usr/bin/env python  
+import sys, glob  
+  
+from HelloService import HelloService  
+from HelloService.ttypes import *  
+  
+from thrift import Thrift  
+from thrift.transport import TSocket  
+from thrift.transport import TTransport  
+from thrift.protocol import TBinaryProtocol  
+  
+try:  
+  
+  # Make socket  
+  transport = TSocket.TSocket('localhost', 9090)  
+  
+  # Buffering is critical. Raw sockets are very slow  
+  transport = TTransport.TBufferedTransport(transport)  
+  
+  # Wrap in a protocol  
+  protocol = TBinaryProtocol.TBinaryProtocol(transport)  
+  
+  # Create a client to use the protocol encoder  
+  client = HelloService.Client(protocol)  
+  
+  # Connect!  
+  transport.open()  
+  
+  client.sayHello();  
+  print 'ping()'  
+  
+  print(client.getData("client access"))  
+  # Close!  
+  transport.close()  
+  
+except Thrift.TException, tx:  
+  print '%s' % (tx.message)
+
+三、python thrift网络部分介绍
+	Thrift官网上的文档很少，从网上搜到的也大都千篇一律，即使是《Thrift: the missing guide》对如何构建python的server和client也没有进行详尽讲述。本博特意看了下thrift提供的python lib，对书写相应的server和client进行了简单的总结，如有错误，欢迎大家指正。
+1. Thrift network stack
+	Transport
+
+	Transport网络读写（socket，http等）抽象，用于和其他thrift组件解耦。
+
+	Transport的接口包括：open, close, read, write, flush, isOpen, readAll。
+
+	Server端需要ServerTransport（对监听socket的一种抽象），用于接收客户端连接，接口包括：listen, accept, close。
+
+	python中Transport的实现包括：TSocket, THttpServer, TSSLSocket, TTwisted, TZlibTransport，都是对某种协议或框架的实现。还有两个装饰器，用于为已有的Transport添加功能，TBufferedTransport（增加缓冲）和TFramedTransport（添加帧）。
+
+	在创建server时，传入的时Tranport的工厂，这些Factory包括：TTransportFactoryBase（没有任何修饰，直接返回），TBufferedTransportFactory（返回带缓冲的Transport）和TFramedTransportFactory（返回帧定位的Transport）。
+	Protocol
+
+	Protocol用于对数据格式抽象，在rpc调用时序列化请求和响应。
+
+	TProtocol的实现包括：TJSONProtocol，TSimpleJSONProtocol，TBinaryProtocol，TBinaryPotocolAccelerated，TCompactProtocol。
+
+	上面每种类型，都有对应的Factory类，用于创建该类对象。
+	Processor
+
+	Processor对stream读写抽象，最终会调用用户编写的handler已响应对应的service。具体的Processor有compiler生成，用户需要实现service的实现类。
+	Server
+
+	Server创建Transport，输入、输出的Protocol，以及响应service的handler，监听到client的请求然后委托给processor处理。
+
+	TServer是基类，构造函数的参数包括：
+
+	1) processor, serverTransport
+
+	2) processor, serverTransport, transportFactory, protocolFactory
+
+	3) processor, serverTransport, inputTransportFactory, outputTransportFactory, inputProtocolFactory, outputProtocolFactory	
+
+	TServer内部实际上需要3）所列的参数，1）和2）会导致对应的参数使用默认值。
+
+	TServer的子类包括：TSimpleServer, TThreadedServer, TThreadPoolServer, TForkingServer, THttpServer, TNonblockingServer, TProcessPoolServer
+
+	TServer的serve方法用于开始服务，接收client的请求。
+2. Code generated
+
+	constants.py: 包含声明的所有常量
+
+	ttypes.py: 声明的struct，实现了具体的序列化和反序列化
+
+	SERVICE_NAME.py: 对应service的描述文件，包含了：
+
+		Iface: service接口定义
+
+		Client: client的rpc调用桩
+
+		Processor: 处理service的具体方法调用，需要传入server端实现的handler
+3. 用法
+
+	Thrift的用法实际上很简单，定义好IDL，然后实现service对应的handler（方法名、参数列表与接口定义一致接口），最后就是选择各个组件。需要选择的包括：Transport（一般都是socket，只是十分需要选择buffed和framed装饰器factory），Protocol，Server。
+
+	就是这么简单，大部分事情thrift已经帮做好了。具体组件怎么选择，多尝试吧
