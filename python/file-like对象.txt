@@ -1,0 +1,55 @@
+File-like对象，也叫类文件对象，类似文件处理的对象
+
+StringIO 对象
+
+In [1]: from io import StringIO
+In [2]: sio = StringIO()   # 初始化一个StringIO
+In [3]: sio.readable()   # 是否可读
+Out[3]: True
+In [4]: sio.writable()   # 是否可写
+Out[4]: True
+In [5]: sio.seekable()   ＃ 是否可移动指针
+Out[5]: True
+In [6]: sio.write('abc')   # 给一个StringIO实例中写入数据　
+Out[6]: 3
+In [7]: sio.seek(0)   #　将StringIO实例中的指针移动到0的位置
+Out[7]: 0
+In [8]: sio.read()   # 读取实例中的数据
+Out[8]: 'abc'
+
+在做图像处理的操作的时候，会频繁操作修改，使用StringIO，直接在内存中进行处理，减少IO处理的频率
+
+
+BytesIO 对象
+
+和上面StringIO是一样的， 但是StringIO的处理数据必须是字符类型的
+BytesIO的处理的数据是bytes的，若不是bytes的数据，就会抛出TypeError的错误
+上面的方法都是和文件一样的错误，还有File-like的独有的方法
+In [5]: bio.getvalue()   # 不管指针在什么地方，都会将其中的内容，全部打印出来
+Out[5]: b'abcd'
+In [5]: bio.close()   # File-like 对象是可关闭的，如果不关闭的话，会一直占用着内存
+In [6]: bio.readable()   # 关闭后，就无法再操作了
+---------------------------------------------------------------------------
+ValueError                                Traceback (most recent call last)
+<ipython-input-6-301a5d95c393> in <module>()
+----> 1 bio.readable()
+
+ValueError: I/O operation on closed file.
+
+File-like对象如果使用了getbuffer的方法，那么就无法close，一般情况下是不用getbuffer的
+
+In [11]: bio = BytesIO()
+
+In [12]: buf = bio.getbuffer()    # 获取buffer到一个变量
+
+In [13]: bio.close()   # 无法关闭
+---------------------------------------------------------------------------
+BufferError                               Traceback (most recent call last)
+<ipython-input-13-ab7fe55091d2> in <module>()
+----> 1 bio.close()
+
+BufferError: Existing exports of data: object cannot be re-sized
+
+In [14]: buf.release()   # 将buffer内的数据提交
+  
+In [15]: bio.close()   # buffer执行过release的方法后，才能关闭
