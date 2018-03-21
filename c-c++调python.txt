@@ -1,0 +1,6 @@
+编译成可执行文件：g++ test.cpp -Wall -I/usr/include/python2.7 -lpython2.7
+编译成动态库：g++ test.cpp -Wall -I/usr/include/python2.7 -lpython2.7 -shared -fPIC -o test.so
+
+编译时报错：“undefined reference to `Py_Initialize' ”
+将上面的test.cpp放到后面时就会出现该错误。
+原因是：“对于-l 使用库的要求是：越是基础的库越要写在后面，无论是静态还动态”。这个很好理解，*.o，*.a，*.so，这些目标文件相互之间的确是存在依赖关系的，应该“向后找”。
