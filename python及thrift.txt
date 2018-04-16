@@ -145,7 +145,8 @@ except Thrift.TException, tx:
 
 	TServer内部实际上需要3）所列的参数，1）和2）会导致对应的参数使用默认值。
 
-	TServer的子类包括：TSimpleServer, TThreadedServer, TThreadPoolServer, TForkingServer, THttpServer, TNonblockingServer, TProcessPoolServer
+	TServer的子类包括：TSimpleServer, TThreadedServer, TThreadPoolServer（默认池的大小为10，可以调用函数接口进行设置）, TForkingServer(没有全局锁的问题)
+    其它的server有：THttpServer, TNonblockingServer, TProcessPoolServer
 
 	TServer的serve方法用于开始服务，接收client的请求。
 2. Code generated
