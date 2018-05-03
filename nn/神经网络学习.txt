@@ -1,0 +1,33 @@
+0、keras中文文档：https://keras.io/zh/regularizers/
+
+1、ValueError: Negative dimension size caused by subtracting 3 from 1
+（然而keras是不断更新的，下面的两个解决方法过阵子可能就过时了。具体以官方为主，可参考github上该项目的解答）
+出现这个错误的原因是图片通道的问题。
+也就是”channels_last”和”channels_first”数据格式的问题。
+input_shape=(3,150, 150)是theano的写法，而tensorflow需要写出：(150,150,3)。
+
+也可以设置不同的后端来进行调整：
+    from keras import backend as K  
+    K.set_image_dim_ordering('th')  
+
+    from keras import backend as K  
+    K.set_image_dim_ordering('tf') 
+或者：model.add(MaxPooling2D(pool_size=(2, 2), dim_ordering="th"))
+
+
+2、一般选的较小卷积核
+
+3、文章中rnn通常放在网络层的后面部分。通常的全连接层，单层自身神经元无连接，循环层自身神经元互相之间有连接，根据连接方法，rnn有多种方法，但使用最多的为lstm。各种方法可以参看http://www.dataguru.cn/article-11860-1.html，这个暂时不建议细看，能明白它从自身的时间角度进行了考虑就可以了
+
+4、偏置的作用举例：
+    改变域值，不然0点永远位于分隔线面上。
+    
+5、含一个隐藏层的神经网络可以无限逼近任意连续函数，为什么还要增加层数？
+    层数越多，对输入特征抽象层次越高。
+    
+6、在BP神经网络中，输入层和输出层的节点个数都是确定的，而隐含层节点个数不确定，那么应该设置为多少才合适呢？
+    实际上，隐含层节点个数的多少对神经网络的性能是有影响的，有一个经验公式可以确定隐含层节点数目，如下
+    h=math.sqrt(m+n) + a 其中h为隐含层节点数目，m为输入层节点数目，n为输出层节点数目，a为1-10之间的调节常数
+
+7、神经网络batch size如何确定？
+（自己理解）小点可能是好的，但如果太小的话可能无法充分利用电脑的并发，运算效率低。改大之后echo可能需要适当增大。另外batch size最好为2的幂方，如2，4，8，16...
