@@ -31,3 +31,47 @@ input_shape=(3,150, 150)是theano的写法，而tensorflow需要写出：(150,150,3)。
 
 7、神经网络batch size如何确定？
 （自己理解）小点可能是好的，但如果太小的话可能无法充分利用电脑的并发，运算效率低。改大之后echo可能需要适当增大。另外batch size最好为2的幂方，如2，4，8，16...
+
+8、Keras输出的loss，val这些值如何保存到文本中：
+Keras中的fit函数会返回一个History对象，它的History.history属性会把之前的那些值全保存在里面，如果有验证集的话，也包含了验证集的这些指标变化情况，具体写法：
+hist=model.fit(train_set_x,train_set_y,batch_size=256,shuffle=True,nb_epoch=nb_epoch,validation_split=0.1)
+with open('log_sgd_big_32.txt','w') as f:
+    f.write(str(hist.history))
+
+9、验证集是从训练集中抽取出来用于调参的，而测试集是和训练集无交集的。
+在Keras中，验证集的划分只要在fit函数里设置validation_split的值就好了，这个对应了取训练集中百分之几的数据出来当做验证集。
+但由于shuffle是在validation _split之后执行的，所以如果一开始训练集没有shuffle的话，有可能使验证集全是负样本。
+fit(self, x=None, y=None, batch_size=None, epochs=1, verbose=1, callbacks=None, validation_split=0.0, validation_data=None, shuffle=True, class_weight=None, sample_weight=None, initial_epoch=0, steps_per_epoch=None, validation_steps=None)
+
+测试集的使用只要在evaluate函数里设置就好了。print model.evaluate(self, x=None, y=None, batch_size=None, verbose=1, sample_weight=None, steps=None)
+
+这里注意evaluate和fit函数的默认batch_size都是32，自己记得修改。
+
+predict(self, x, batch_size=None, verbose=0, steps=None)为输入样本生成输出预测。输入样本逐批处理。
+
+10、dropout可以放在很多类层的后面，用来抑制过拟合现象，常见的可以直接放在Dense层后面，对于在Convolutional和Maxpooling层中dropout应该放置在Convolutional和Maxpooling之间，还是Maxpooling后面的说法，我的建议是试！这两种放置方法我都见过，但是孰优孰劣我也不好说，但是大部分见到的都是放在Convolutional和Maxpooling之间。
+
+
+11、值得注意的是，最优的模型仍然有可能在训练误差和泛化误差之间存在很大的差距。在这种情况下，我们可以通过收集更多的训练样本来缩小差距。
+
+12、防止过拟合：
+防止过拟合常用到的一些方法，如：early stopping、数据集扩增（Data augmentation）、正则化（Regularization）、Dropout及其它。
+在统计和机器学习中，为了避免过拟合现象，需要使用额外的技巧，如交叉验证、提早停止、贝斯信息量准则、赤池信息量准则或模型比较等。
+(1)、获取更多数据是解决过拟合最有效的方法。
+A、从数据源头获取更多数据
+B、根据当前数据集估计数据分布参数，使用该分布产生更多数据：这个一般不用，因为估计分布参数的过程也会代入抽样误差。
+C、数据增强(DataAugmentation)：通过一定规则扩充数据。例如在物体分类问题里，物体在图像中的位置、姿态、尺度、整体图片明暗度等都不会影响分类结果。我们就可以通过图像平移、翻转、缩放、切割等手段将数据库成倍扩充。
+D、复制原有数据并加上随机噪声
+E、重采样
+(2)、使用合适的模型：过拟合主要是有两个原因造成的：数据太少+模型太复杂。所以，我们可以通过使用合适复杂度的模型来防止过拟合的问题，让其足够拟合真正的规则，同时又不至于拟合太多抽样误差。
+A、网络结构(Architecture):减少网络的层数、神经元个数等均可以限制网络的拟合能力。
+B、训练时间(Earlystopping):对于每个神经元而言，其激活函数在不同区间的性能是不同的。当网络权值较小时，神经元的激活函数工作在线性区，此时神经元的拟合能力较弱(类似线性神经元)。我们在初始化网络的时候一般都是初始为较小的权值。训练时间越长，部分网络权值可能越大。如果我们在合适时间停止训练，就可以将网络的能力限制在一定范围内。
+C、限制权值(weight-decay),也叫正则化(regularization)：这类方法直接将权值的大小加入到Cost里，在训练的时候限制权值变大。
+D、增加噪声Noise：在输入中加噪声：噪声会随着网络传播，按照权值的平方放大，并传播到输出层，对误差Cost产生影响。在权值上加噪声：在初始化网络的时候，用0均值的高斯分布作为初始化。对网络的响应加噪声：如在前向传播过程中，让神经元的输出变为binary或random。显然，这种有点乱来的做法会打乱网络的训练过程，让训练更慢，但据Hinton说，在测试集上效果会有显著提升。
+(3)、结合多种模型：简而言之，训练多个模型，以每个模型的平均输出作为结果。从N个模型里随机选择一个作为输出的期望误差，会比所有模型的平均输出的误差大。
+A、Bagging：是分段函数的概念，用不同的模型拟合不同部分的训练集。以随机森林(randforests)为例，就是训练了一堆互不关联的决策树。一般不单独使用神经网络做Bagging。
+B、Boosting：既然训练复杂神经网络比较慢，那我们就可以只使用简单的神经网络(层数、神经元数限制等)。通过训练一系列简单的神经网络，加权平均其输出。
+C、Dropout：这是一个很高效的方法。在训练时，每次随机忽略隐层的某些节点，这样，我们相当于随机从模型中采样选择模型，同时，由于每个网络只见过一个训练数据(每次都是随机的新网络)，所以类似bagging的做法。
+(4)、贝叶斯方法。
+在统计学中，过拟合(overfitting)现象是指在拟合一个统计模型时，使用过多参数。对比于可获取的数据总量来说，一个荒谬的模型只要足够复杂，是可以完美地适应数据。当可选择的参数的自由度超过数据所包含信息内容时，这会导致最后(拟合后)模型使用任意的参数，这会减少或破坏模型一般化的能力更甚于适应数据。过拟合的可能性不只取决于参数个数和数据，也跟模型架构与数据的一致性有关。此外对比于数据中的预期的噪声或错误数量，跟模型错误的数量也有关。
+
