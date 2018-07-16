@@ -1,6 +1,6 @@
 需要事先安装：
 VCForPython27.msi
-mysql-connector-python
+mysql-connector
 mysql-python(64位安装资源存在很多问题，pypi提供的包也不能正确安装，可以从这里下载：http://www.lfd.uci.edu/~gohlke/pythonlibs/)
 
 pip install torndb
