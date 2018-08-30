@@ -1,3 +1,7 @@
+补充：
+线程队列用：import Queue; q = Queue.Queue()
+进程队列用：import multiprocess; q=multiprocess.Queue()
+
 
 创建一个“队列”对象
 import Queue
